@@ -1,4 +1,4 @@
-import java.sql.Time;
+import java.sql.Timestamp;
 public class User {
 
 	int id;
@@ -7,7 +7,7 @@ public class User {
 	String password;
 	String salt_token;
 	String token;
-	Time timestamp;
+	Timestamp timestamp;//ander type?
 	
 	
 	
@@ -61,14 +61,14 @@ public class User {
 	public void setToken(String token) {
 		this.token = token;
 	}
-	public Time getTimestamp() {
+	public Timestamp getTimestamp() {
 		return timestamp;
 	}
-	public void setTimestamp(Time timestamp) {
+	public void setTimestamp(Timestamp timestamp) {
 		this.timestamp = timestamp;
 	}
 	public void setTimestamp(Long time) {
-		this.timestamp = new Time(time);
+		this.timestamp = new Timestamp(time);
 	}
 	
 }

@@ -12,6 +12,7 @@ public class Database {
 	
 Connection con;
 PreparedStatement createUser;
+PreparedStatement updateUser;
 
 	
 	Database(){
@@ -25,11 +26,14 @@ PreparedStatement createUser;
 		
 		 if(con!=null){
 			 //prepaperedstatements hieronder
-			 
+			 //voor nieuwe users aan te maken
 			 String insertInUser = "INSERT INTO User"
 						+ "(id, login, password) VALUES"
 						+ "(?,?,?)";
 			 createUser=con.prepareStatement(insertInUser);
+			 
+			 String updateUserString = "UPDATE User SET salt_password = ?, password = ?, salt_token = ?, token = ?, timestamp = ? WHERE id = ?";
+			 updateUser = con.prepareStatement(updateUserString);
 			 
              System.out.println("ready");
          }
@@ -92,8 +96,25 @@ PreparedStatement createUser;
 	}
 	
 	void updateUser(User u) {
+		//Timestamp ID NIET Geïmplementeerd!
+		//UPDATE User SET salt_password = ?, password = ?, salt_token = ?, token = ?, timestamp = ?  WHERE id = ?
+		System.out.println("updating user");
+		try {
+			
+			updateUser.setString(1, u.getSalt_password());
+			updateUser.setString(2, u.getPassword());
+			updateUser.setString(3, u.getSalt_token());
+			updateUser.setString(4, u.getToken());
+			updateUser.setInt(5, 0);
+			updateUser.setInt(6, u.getId());
+			updateUser.executeUpdate();
+			
+			System.out.println("new user updated");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-	
 	}
 	
 	void deleteUser(User u) {
