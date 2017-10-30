@@ -5,12 +5,26 @@ public class User {
 	String login;
 	String salt_password;
 	String password;
+	
+
 	String salt_token;
 	String token;
-	Timestamp timestamp;//ander type?
+	Long timestamp;//ander type?
 	
 	
 	
+	public User(int id, String login, String salt_password, String password, String salt_token, String token,
+			Long i) {
+		super();
+		this.id = id;
+		this.login = login;
+		this.salt_password = salt_password;
+		this.password = password;
+		this.salt_token = salt_token;
+		this.token = token;
+		this.timestamp = i;
+	}
+
 	//time= time in milliseconds
 	public User(int id, String login, String salt_password, String password) {
 		super();
@@ -61,14 +75,19 @@ public class User {
 	public void setToken(String token) {
 		this.token = token;
 	}
-	public Timestamp getTimestamp() {
+	public Long getTimestamp() {
 		return timestamp;
 	}
-	public void setTimestamp(Timestamp timestamp) {
-		this.timestamp = timestamp;
-	}
+
 	public void setTimestamp(Long time) {
-		this.timestamp = new Timestamp(time);
+		this.timestamp = time;
+	}
+	
+	
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", login=" + login + ", salt_password=" + salt_password + ", password=" + password
+				+ ", salt_token=" + salt_token + ", token=" + token + ", timestamp=" + timestamp + "]";
 	}
 	
 }
