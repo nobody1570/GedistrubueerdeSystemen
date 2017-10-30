@@ -13,7 +13,7 @@ public class Database {
 Connection con;
 PreparedStatement createUser;
 PreparedStatement updateUser;
-
+PreparedStatement deleteUser;
 	
 	Database(){
 		try {
@@ -32,8 +32,13 @@ PreparedStatement updateUser;
 						+ "(?,?,?)";
 			 createUser=con.prepareStatement(insertInUser);
 			 
+			 //update user
 			 String updateUserString = "UPDATE User SET salt_password = ?, password = ?, salt_token = ?, token = ?, timestamp = ? WHERE id = ?";
 			 updateUser = con.prepareStatement(updateUserString);
+			 
+			 //delete user
+			 String deleteUserString = "DELETE FROM User WHERE id = ?";
+			 deleteUser = con.prepareStatement(deleteUserString);
 			 
              System.out.println("ready");
          }
@@ -118,6 +123,26 @@ PreparedStatement updateUser;
 	}
 	
 	void deleteUser(User u) {
+		
+		deleteUser(u.getId());
+		
+	}
+	
+void deleteUser(int i) {
+		
+		//DELETE User WHERE id = ?
+		System.out.println("deleting user");
+		try {
+			
+			
+			deleteUser.setInt(1, i);
+			deleteUser.executeUpdate();
+			
+			System.out.println("user deleted");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 	
