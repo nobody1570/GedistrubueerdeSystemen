@@ -30,8 +30,28 @@ public class Game {
 
 		this.id=id;
 		deck = new LinkedList<Card>();
-		// TODO alle kaarten toevoegen
+		//alle kaarten toevoegen
+		
+		for(int i=0;i<15;i++) {
+			for (int j=0;j<4;j++) {
+				
+				deck.add(new Card(j,i));
+				
+			}	
+		}
+		
+		for(int i=1;i<13;i++) {
+			for (int j=0;j<4;j++) {
+				
+				deck.add(new Card(j,i));
+				
+			}	
+		}
+		
+		//kaarten toegevoegd (UNO heeft 4 != nullen, 4 +4 en 4 kleur veranderen en 2 v/d rest(deze zijn wel gelijk))
 
+		
+		//kaarten schudden
 		shuffleCards();
 
 		for(int i=0;i<MAX_USERS;i++) {
