@@ -10,6 +10,8 @@ import java.util.TreeSet;
 
 public class Game {
 
+	
+
 	int id;
 	public static final int MAX_USERS = 4;
 	public static final int START_CARDS = 4;
@@ -24,14 +26,21 @@ public class Game {
 
 	Boolean started;
 
-	Game() {
+	Game(int id) {
 
+		this.id=id;
 		deck = new LinkedList<Card>();
 		// TODO alle kaarten toevoegen
 
 		shuffleCards();
 
-		for(int i=0;i<MAX_USERS;i++)cards.set(i, new TreeSet<Card>()) ;
+		for(int i=0;i<MAX_USERS;i++) {
+			
+			users.add(null);
+			
+			cards.add(new TreeSet<Card>()) ;
+			
+		}
 		
 		started=false;
 
@@ -81,7 +90,7 @@ public class Game {
 			while(!found){
 				
 				if(users.get(i).equals(u)) {
-					
+					found=true;
 					users.set(i, null);
 					cleanUsers();
 				}
@@ -96,13 +105,14 @@ public class Game {
 
 	private void cleanUsers() {
 		// moves all users with a null value to the back of our list
-		//zou moeten werken
+		//werkt.
 		for (int i=0;i<(MAX_USERS-1);i++) {
 			
 			if(users.get(i)==null) {
 				int k=i;
 				do {
 				users.set(k, users.get(k+1));
+				users.set(k+1, null);
 				k++;
 				}while(k<MAX_USERS-2);
 				
@@ -112,6 +122,12 @@ public class Game {
 			
 		}
 		
+	}
+	
+	@Override
+	public String toString() {
+		return "Game [id=" + id + ", users=" + users + ", cards=" + cards + ", deck=" + deck + ", started=" + started
+				+ "]";
 	}
 	
 	
