@@ -20,7 +20,7 @@ public class Game {
 	List<User> users=new ArrayList<User>(MAX_USERS);
 	
 	//cards of user
-	List<Set<Card>> cards=new ArrayList<Set<Card>>(MAX_USERS);
+	List<ArrayList<Card>> cards=new ArrayList<ArrayList<Card>>(MAX_USERS);
 
 	LinkedList<Card> deck;
 
@@ -58,7 +58,7 @@ public class Game {
 			
 			users.add(null);
 			
-			cards.add(new TreeSet<Card>()) ;
+			cards.add(new ArrayList<Card>()) ;
 			
 		}
 		
@@ -112,6 +112,8 @@ public class Game {
 				if(users.get(i).equals(u)) {
 					found=true;
 					users.set(i, null);
+					deck.addAll(cards.get(i));
+					cards.get(i).clear();
 					cleanUsers();
 				}
 				i++;
@@ -125,6 +127,7 @@ public class Game {
 
 	private void cleanUsers() {
 		// moves all users with a null value to the back of our list
+		//makes sure the cards follow the users
 		//werkt.
 		for (int i=0;i<(MAX_USERS-1);i++) {
 			
@@ -133,6 +136,10 @@ public class Game {
 				do {
 				users.set(k, users.get(k+1));
 				users.set(k+1, null);
+				
+				ArrayList <Card> aid=cards.get(k);
+				cards.set(k, cards.get(k+1));
+				cards.set(k+1, aid);
 				k++;
 				}while(k<MAX_USERS-2);
 				
@@ -144,9 +151,66 @@ public class Game {
 		
 	}
 	
+	
+	void takeCard(User u) {
+		boolean found=false;
+		int i=0;
+		if(u!=null)
+		if(users.contains(u))
+		while(i<MAX_USERS&&!found) {
+			
+			if (users.get(i).equals(u)) {
+				found=true;
+				
+				if(!deck.isEmpty())
+				cards.get(i).add(deck.removeFirst());
+				
+			}
+			
+			i++;
+		}
+		
+		
+	}
+	
+	void takeCards(User u,int a) {
+		boolean found=false;
+		int i=0;
+		if(users.contains(u))
+		while(i<MAX_USERS&&!found) {
+			
+			if (users.get(i).equals(u)) {
+				found=true;
+				
+				for(int j=0;j<a&&!deck.isEmpty();j++) {
+					cards.get(i).add(deck.removeFirst());
+					}
+				
+				
+				
+			}
+			
+			i++;
+		}
+		
+		
+	}
+	
+	public Boolean getStarted() {
+		return started;
+	}
+
+	public void setStarted(Boolean started) {
+		this.started = started;
+	}
+
+	public int getId() {
+		return id;
+	}
+
 	@Override
 	public String toString() {
-		return "Game [id=" + id + ", users=" + users + ", cards=" + cards + ", deck=" + deck + ", started=" + started
+		return "Game [id=" + id + ",\n      users=" + users + ",\n      cards=" + cards + ",\n      deck=" + deck + ",\n      started=" + started
 				+ "]";
 	}
 	
