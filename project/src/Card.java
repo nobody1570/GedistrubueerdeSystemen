@@ -1,5 +1,5 @@
 
-public class Card {
+public class Card extends Parent{
 
 	Colour c;
 	int number;
@@ -30,7 +30,14 @@ public class Card {
 			
 			}
 		}
+		Rectangle rg = new Rectangle(80,100);
+		rg.setArchWidth(20);
+		rg.setArchHeight(20);
+		rg.setFill(c);
 		
+		Text text = new Text(toString());
+		text.setWrappingWidth(70);
+		getChildren().add(new StackPane(rg,text));
 		
 	}
 	
@@ -66,9 +73,9 @@ public class Card {
 	
 	
 
-public enum Colour {
-    RED,GREEN,BLUE,YELLOW,ANY
-}
+	public enum Colour {
+	    RED,GREEN,BLUE,YELLOW,ANY
+	}
 
 
 	

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="gui.GameController">
+   <children>
+      <SplitPane dividerPositions="0.29797979797979796" layoutX="-4.0" layoutY="-3.0" prefHeight="436.0" prefWidth="612.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <Button layoutX="38.0" layoutY="360.0" mnemonicParsing="false" onAction="#returnToLobby" text="Return" />
+                  <ListView prefHeight="200.0" prefWidth="178.0" />
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="357.0" prefWidth="380.0">
+               <children>
+                  <Button disable="true" layoutX="321.0" layoutY="41.0" mnemonicParsing="false" text="Draw" />
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+   </children>
+</AnchorPane>

@@ -72,7 +72,7 @@ public class Game {
 
 	
 	void addPlayer(User u) {
-		
+		//niet in spel en nog plaats vrij
 		if(!users.contains(u)&&countPlayers()<MAX_USERS) {
 			
 			Boolean found =false;
