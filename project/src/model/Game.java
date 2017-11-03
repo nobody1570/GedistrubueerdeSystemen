@@ -32,6 +32,13 @@ public class Game {
 	LinkedList<Card> deck;
 
 	Boolean started;
+	
+	int amountOfPlayers=0;
+	
+	int turn;//speler aan beurt 0 1 2 3
+	int direction=1;//1 klokwijzerszin  -1 tegenklokwijzerszin
+	
+	Card LastCard;
 
 	Game(int id) {
 
@@ -70,6 +77,7 @@ public class Game {
 		}
 		
 		started=false;
+		int turn=0;
 
 	}
 
@@ -94,6 +102,7 @@ public class Game {
 					
 					users.set(i,u);
 					found=true;
+					amountOfPlayers++;
 				}
 				
 				i++;
@@ -126,6 +135,7 @@ public class Game {
 					deck.addAll(cards.get(i));
 					cards.get(i).clear();
 					cleanUsers();
+					amountOfPlayers--;
 				}
 				i++;
 			}
@@ -162,8 +172,39 @@ public class Game {
 		
 	}
 	
+	//
+	//null-->kaart nemen. c-->kaart afleggen
+	//checkt of speler mag afleggen
+	boolean performTurn(User u,Card c){
+		boolean ok=false;
+		
+		if(u.equals(users.get(turn))) {
+			
+			if(c!=null) {
+				
+				
+				ok=playCard(u,c);
+				endTurn();
+				
+			}
+			
+			else
+				
+			{
+				
+				takeCard(u);
+				
+			}
+			
+			
+			
+		}
+		
+		return ok;
+	}
 	
-	void takeCard(User u) {
+	//gebruikt in performturn
+	private void takeCard(User u) {
 		boolean found=false;
 		int i=0;
 		if(u!=null)
@@ -184,41 +225,99 @@ public class Game {
 		
 	}
 	
-	void takeCards(User u,int a) {
-		boolean found=false;
-		int i=0;
-		if(users.contains(u))
-		while(i<MAX_USERS&&!found) {
-			
-			if (users.get(i).equals(u)) {
-				found=true;
-				
-				for(int j=0;j<a&&!deck.isEmpty();j++) {
-					cards.get(i).add(deck.removeFirst());
-					}
-				
-				
-				
-			}
-			
-			i++;
+	
+	
+	//voor kaarten te spelen
+	//controleerd of speler deze mag afleggen
+	boolean playCard(User u, Card c) {
+
+		Boolean ok = false;
+		int position = findUserPosition(u);
+
+		if (cards.get(position).contains(c)) {
+			ok = true;
+			cards.get(position).remove(c);
+			deck.addLast(c);
+			LastCard=c;
+
+			performCardActions(c);
 		}
+
+		return ok;
+
+	}
+
+	//gebruikt in playcard
+	private void performCardActions(Card c) {
+		// special actions handler
 		
+		switch(c.getNumber()) {
 		
+		case 10: endTurn(); break;
+		case 11: direction=direction*(-1); break;
+		case 12:  endTurn(); takeCards(users.get(turn),2);break;
+		case 13:  break;//kleurverandering met boolean?
+		case 14:  endTurn(); takeCards(users.get(turn),4);break;//kleurverandering met boolean?
+		
+		default:;
+		}
+
 	}
 	
-	public Boolean getStarted() {
-		return started;
+	void endTurn() {
+		turn=turn+direction;
+		turn=turn%amountOfPlayers;
 	}
+	
+	//gebruikt in performCardActions
+		private void takeCards(User u,int a) {
+			boolean found=false;
+			int i=0;
+			if(users.contains(u))
+			while(i<MAX_USERS&&!found) {
+				
+				if (users.get(i).equals(u)) {
+					found=true;
+					
+					for(int j=0;j<a&&!deck.isEmpty();j++) {
+						cards.get(i).add(deck.removeFirst());
+						}
+					
+					
+					
+				}
+				
+				i++;
+			}
+			
+			
+		}   
 
-	public void setStarted(Boolean started) {
-		this.started = started;
-	}
 
-	public int getId() {
-		return id;
+
+	Integer findUserPosition(User u) {
+		Integer result = null;
+
+		boolean found = false;
+		int i = 0;
+		if (users.contains(u))
+			while (i < MAX_USERS && !found) {
+
+				if (users.get(i).equals(u)) {
+					found = true;
+					result = i;
+
+				}
+
+				i++;
+			}
+
+		return result;
 	}
-        
+	
+	//probleem!
+	//kan niet werken User.equals kijkt alleen naar het id v/d user
+	//is beter als users hun eigen id doorgeven.
         public List<Card> getHand(String username){
             for (int i = 0; i<4;i++){
                 if (users.get(i).equals(username)){
@@ -227,6 +326,18 @@ public class Game {
             }
             return null;
         }
+        
+        public Boolean getStarted() {
+    		return started;
+    	}
+
+    	public void setStarted(Boolean started) {
+    		this.started = started;
+    	}
+
+    	public int getId() {
+    		return id;
+    	}
 
 	@Override
 	public String toString() {
