@@ -49,29 +49,22 @@ public class Card extends Parent{
         
     }
 	
-	Colour getColour() {
+	public Colour getColour() {
 		return c;
 	}
-	Integer getNumber() {
+	public int getNumber() {
 		return number;
 	}
 	
 	
-	//bruikbaar?
-/*	boolean sameColour(Card card) {
-		boolean same=false;
-		if(card.getColour().equals(Colour.ANY)||card.getColour().equals(c))same=true;
-				
-		return same;
-	}
-	
+
 	//false als niet gelijk of kaart die kleur can veranderen
 	boolean sameNumber(Card card) {
 		boolean same=false;
-		if(card.getNumber()==number&&number<13)same=true;
+		if(card.getNumber()==number)same=true;
 				
 		return same;
-	}*/
+	}
 	
 	
 	@Override
@@ -80,6 +73,28 @@ public class Card extends Parent{
 	}
 	
 	
+	
+
+	
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Card other = (Card) obj;
+		if (!c.equals(other.c))
+			return false;
+		if (number != other.number)
+			return false;
+		return true;
+	}
+
+
+
 
 	public enum Colour {
 	    RED,GREEN,BLUE,YELLOW,ANY

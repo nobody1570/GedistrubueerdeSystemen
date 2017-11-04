@@ -15,6 +15,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 
+import model.Card.Colour;
+
 public class Game {
 
 	
@@ -39,8 +41,10 @@ public class Game {
 	int direction=1;//1 klokwijzerszin  -1 tegenklokwijzerszin
 	
 	Card LastCard;
+	Colour current;
+	Colour preferred;
 
-	Game(int id) {
+	public Game(int id) {
 
 		this.id=id;
 		deck = new LinkedList<Card>();
@@ -85,12 +89,12 @@ public class Game {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-	void shuffleCards() {
+	private void shuffleCards() {
 		Collections.shuffle(deck);
 	}
 
 	
-	void addPlayer(User u) {
+	public void addPlayer(User u) {
 		//niet in spel en nog plaats vrij
 		if(!users.contains(u)&&countPlayers()<MAX_USERS) {
 			
@@ -114,7 +118,7 @@ public class Game {
 		
 	}
 	
-	int countPlayers() {
+	private int countPlayers() {
 		int count=0;
 		for (int i=0;i<MAX_USERS;i++)
 		if(users.get(i)!=null)count++;
@@ -122,7 +126,7 @@ public class Game {
 		return count;
 	}
 	
-	void removePlayer(User u) {
+	public void removePlayer(User u) {
 		
 		if (users.contains(u)) {
 			boolean found =false;
@@ -172,10 +176,18 @@ public class Game {
 		
 	}
 	
+	
+	
+	
+	public void SetPreferredColour(User u,Colour c) {
+		
+		if(u.equals(users.get(turn)))preferred=c;
+		
+	}
 	//
 	//null-->kaart nemen. c-->kaart afleggen
 	//checkt of speler mag afleggen
-	boolean performTurn(User u,Card c){
+	public boolean performTurn(User u,Card c){
 		boolean ok=false;
 		
 		if(u.equals(users.get(turn))) {
@@ -184,7 +196,7 @@ public class Game {
 				
 				
 				ok=playCard(u,c);
-				endTurn();
+				if(ok)endTurn();
 				
 			}
 			
@@ -193,6 +205,7 @@ public class Game {
 			{
 				
 				takeCard(u);
+				endTurn();
 				
 			}
 			
@@ -229,22 +242,35 @@ public class Game {
 	
 	//voor kaarten te spelen
 	//controleerd of speler deze mag afleggen
-	boolean playCard(User u, Card c) {
+	private boolean playCard(User u, Card c) {
 
 		Boolean ok = false;
-		int position = findUserPosition(u);
-
-		if (cards.get(position).contains(c)) {
+		
+		
+		if (cards.get(turn).contains(c)&&playCardAllowed(c)) {
+			
 			ok = true;
-			cards.get(position).remove(c);
+			cards.get(turn).remove(c);
 			deck.addLast(c);
 			LastCard=c;
+			current=c.getColour();
 
 			performCardActions(c);
 		}
 
 		return ok;
 
+	}
+	
+	//gebruikt in playcard
+	public boolean playCardAllowed(Card c) {
+		boolean allowed=false;
+		
+		if(current==c.getColour()||c.getColour()==Colour.ANY||c.sameNumber(LastCard)) {
+			allowed =true;
+		}
+		
+		return allowed;
 	}
 
 	//gebruikt in playcard
@@ -256,16 +282,17 @@ public class Game {
 		case 10: endTurn(); break;
 		case 11: direction=direction*(-1); break;
 		case 12:  endTurn(); takeCards(users.get(turn),2);break;
-		case 13:  break;//kleurverandering met boolean?
-		case 14:  endTurn(); takeCards(users.get(turn),4);break;//kleurverandering met boolean?
+		case 13:  if(preferred!=null)current=preferred; break;
+		case 14:  if(preferred!=null)current=preferred; endTurn(); takeCards(users.get(turn),4);break;
 		
 		default:;
 		}
 
 	}
 	
-	void endTurn() {
+	private void endTurn() {
 		turn=turn+direction;
+		if(turn<0)turn=turn+amountOfPlayers;
 		turn=turn%amountOfPlayers;
 	}
 	
@@ -295,25 +322,7 @@ public class Game {
 
 
 
-	Integer findUserPosition(User u) {
-		Integer result = null;
-
-		boolean found = false;
-		int i = 0;
-		if (users.contains(u))
-			while (i < MAX_USERS && !found) {
-
-				if (users.get(i).equals(u)) {
-					found = true;
-					result = i;
-
-				}
-
-				i++;
-			}
-
-		return result;
-	}
+	
 	
 	//probleem!
 	//kan niet werken User.equals kijkt alleen naar het id v/d user
@@ -339,11 +348,14 @@ public class Game {
     		return id;
     	}
 
-	@Override
-	public String toString() {
-		return "Game [id=" + id + ",\n      users=" + users + ",\n      cards=" + cards + ",\n      deck=" + deck + ",\n      started=" + started
-				+ "]";
-	}
+		@Override
+		public String toString() {
+			return "Game [users=" + users + ",\n cards=" + cards + ",\n  started=" + started + ",\n  amountOfPlayers="
+					+ amountOfPlayers + ",\n turn=" + turn + ",\n direction=" + direction + ",\n LastCard=" + LastCard
+					+ ",\n current=" + current + ",\n preferred=" + preferred + "]";
+		}
+
+    	
 	
 	
 	
