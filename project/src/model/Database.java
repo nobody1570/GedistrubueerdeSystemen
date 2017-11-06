@@ -10,16 +10,16 @@ import java.util.List;
 public class Database {
 
 	private Connection con;
-	
-	//user
+
+	// user
 	private PreparedStatement createUser;
 	private PreparedStatement updateUser;
 	private PreparedStatement deleteUser;
 	private PreparedStatement getUser;
 	private PreparedStatement getUserWithLogin;
 	private PreparedStatement getHighestUserID;
-	
-	//game
+
+	// game
 	private PreparedStatement createGame;
 	private PreparedStatement createCard;
 
@@ -32,8 +32,8 @@ public class Database {
 
 			if (con != null) {
 				// prepaperedstatements hieronder
-				
-				//user
+
+				// user
 				// voor nieuwe users aan te maken
 				String insertInUser = "INSERT INTO User" + "(id, login, password) VALUES" + "(?,?,?)";
 				createUser = con.prepareStatement(insertInUser);
@@ -52,23 +52,20 @@ public class Database {
 				// delete user
 				String deleteUserString = "DELETE FROM User WHERE id = ?";
 				deleteUser = con.prepareStatement(deleteUserString);
-				
-				//get max id of users
+
+				// get max id of users
 				String getHighestUserIDString = "SELECT MAX(id) FROM User";
 				getHighestUserID = con.prepareStatement(getHighestUserIDString);
-				
-				
-				
-				//game
-				//insert game
-				String insertGame = "INSERT INTO game" + "(game_id, player1, player2, player3, player4) VALUES" + "(?,?,?,?,?)";
+
+				// game
+				// insert game
+				String insertGame = "INSERT INTO game" + "(game_id, player1, player2, player3, player4) VALUES"
+						+ "(?,?,?,?,?)";
 				createGame = con.prepareStatement(insertGame);
-				
-				//insert cards from game
-			//	String insertCard = "INSERT INTO cards" + "(game_id, user_id, card) VALUES" + "(?,?,?)";
-				//createCard = con.prepareStatement(insertCard);
-				
-				
+
+				// insert cards from game
+				String insertCard = "INSERT INTO cards" + "(game_id, user_id, colour, number) VALUES" + "(?,?,?,?)";
+				createCard = con.prepareStatement(insertCard);
 
 				System.out.println("ready");
 			}
@@ -230,32 +227,63 @@ public class Database {
 	}
 
 	public void saveGame(Game g) {
-		
-		//"INSERT INTO game" + "(game_id, player1, player2, player3, player4) VALUES" + "(?,?,?,?,?)";
-		
+
+		// "INSERT INTO game" + "(game_id, player1, player2, player3, player4) VALUES" +
+		// "(?,?,?,?,?)";
+
 		System.out.println("saving game");
-		
-		List<User> players=g.getPlayers();
+
+		List<User> players = g.getPlayers();
 		try {
 
-			//System.out.println(g);
+			// add players to database
 			createGame.setInt(1, g.getId());
 			createGame.setInt(2, players.get(0).getId());
 			createGame.setInt(3, players.get(1).getId());
-			
-			
-			if(players.get(2)!=null)
-			createGame.setInt(4, players.get(2).getId());
-			
-			if(players.get(3)!=null)
-			createGame.setInt(5, players.get(3).getId());
-			
+
+			if (players.get(2) != null)
+				createGame.setInt(4, players.get(2).getId());
+
+			if (players.get(3) != null)
+				createGame.setInt(5, players.get(3).getId());
+
 			createGame.executeUpdate();
 			
 			
+			//add cards to database
+			int gameID=g.getId();
+			//"INSERT INTO cards" + "(game_id, user_id, colour, number) VALUES" + "(?,?,?,?)";
 			
+			//voor alle users
+			List<Card> cl;
+			User u; 
+			int userID;
+			for(int i=0;i<g.MAX_USERS;i++) {
+				
+			u=players.get(i);
+				
+			if(u!=null) {
+				
+			cl= g.getHand(u);
+			userID=u.getId();
 			
+			for(Card c: cl) {
+				
+				
+			createCard.setInt(1,gameID);
+			createCard.setInt(2,userID);
+			createCard.setInt(3,c.getColourValue());
+			createCard.setInt(4,c.getNumber());
+			createCard.executeUpdate();	
+				
+				
+			}
+				
 			
+				
+				
+			}
+			}
 
 			System.out.println("game saved");
 		} catch (SQLException e) {
