@@ -87,7 +87,7 @@ public class Game {
 
   
 
-	private void shuffleCards() {
+	public void shuffleCards() {
 		Collections.shuffle(deck);
 	}
 
@@ -389,6 +389,8 @@ public class Game {
     		
     		return users;
     	}
+    	
+    	
 
 		@Override
 		public String toString() {
@@ -397,8 +399,84 @@ public class Game {
 					+ ",\n current=" + current + ",\n preferred=" + preferred + "]";
 		}
 
-    	
-	
+
+
+		public int getTurn() {
+			// TODO Auto-generated method stub
+			return turn;
+		}
+
+		public void setTurn(int turn) {
+			
+			this.turn=turn;
+		}
+
+
+		public int getDirection() {
+			// TODO Auto-generated method stub
+			return direction;
+		}
+
+		public void setDirection(int direction) {
+			
+			this.direction=direction;
+		}
+
+
+		public int getLastColour() {
+			// TODO Auto-generated method stub
+			switch (current) {
+			
+			case RED: return 0; 
+			case GREEN: return 1; 
+			case BLUE: return 2; 
+			case YELLOW: return 3; 
+			case ANY: return 4; 
+			default: return -1;
+		   }
+			
+			
+		}
+
+		public void setLastColour(int lastColour) {
+			
+			
+			switch (lastColour) {
+			
+			case 0: current=Colour.RED; break;
+			case 1: current=Colour.GREEN; break;
+			case 2: current=Colour.BLUE; break;
+			case 3: current=Colour.YELLOW; break;
+			
+			}
+			
+		}
+
+		public int getLastNumber() {
+			// TODO Auto-generated method stub
+			return LastCard.getNumber();
+		}
+
+		
+		public void setLastNumber(int lastNumber) {
+			// TODO Auto-generated method stub
+			LastCard=new Card(-1,lastNumber);
+		}
+
+
+		//ONLY USE IN DATABASE-CLASS!!!!!!!!!!!!!!!
+		public void removeHandsFromStack() {
+			// TODO Auto-generated method stub
+			
+			for(int i=0;i<MAX_USERS;i++) {
+				
+				for(Card c:cards.get(i))
+				deck.remove(c);
+				
+				
+			}
+			
+		}
 	
 	
 	

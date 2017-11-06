@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Database {
@@ -21,7 +23,9 @@ public class Database {
 
 	// game
 	private PreparedStatement createGame;
+	private PreparedStatement readGame;
 	private PreparedStatement createCard;
+	private PreparedStatement readCard;
 
 	public Database() {
 
@@ -58,14 +62,27 @@ public class Database {
 				getHighestUserID = con.prepareStatement(getHighestUserIDString);
 
 				// game
-				// insert game
-				String insertGame = "INSERT INTO game" + "(game_id, player1, player2, player3, player4) VALUES"
-						+ "(?,?,?,?,?)";
+				// insert game 
+				String insertGame = "INSERT INTO game" + "(game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number) VALUES"
+						+ "(?,?,?,?,?,?,?,?,?)";
 				createGame = con.prepareStatement(insertGame);
-
+				
+				
+				//get game
+				String getGame = "SELECT game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number FROM game WHERE game_id = ?";
+				readGame = con.prepareStatement(getGame);
+				
+				
 				// insert cards from game
 				String insertCard = "INSERT INTO cards" + "(game_id, user_id, colour, number) VALUES" + "(?,?,?,?)";
 				createCard = con.prepareStatement(insertCard);
+				
+				
+				
+				//get cards
+				
+				String getCards = "SELECT colour, number FROM cards WHERE game_id = ? AND user_id= ?";
+				readCard = con.prepareStatement(getCards);
 
 				System.out.println("ready");
 			}
@@ -228,8 +245,8 @@ public class Database {
 
 	public void saveGame(Game g) {
 
-		// "INSERT INTO game" + "(game_id, player1, player2, player3, player4) VALUES" +
-		// "(?,?,?,?,?)";
+		// "(game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number) VALUES"
+		//		+ "(?,?,?,?,?,?,?,?,?)";
 
 		System.out.println("saving game");
 
@@ -246,6 +263,11 @@ public class Database {
 
 			if (players.get(3) != null)
 				createGame.setInt(5, players.get(3).getId());
+			
+			createGame.setInt(6, g.getTurn());
+			createGame.setInt(7, g.getDirection());
+			createGame.setInt(8, g.getLastColour());
+			createGame.setInt(9, g.getLastNumber());
 
 			createGame.executeUpdate();
 			
@@ -258,7 +280,7 @@ public class Database {
 			List<Card> cl;
 			User u; 
 			int userID;
-			for(int i=0;i<g.MAX_USERS;i++) {
+			for(int i=0;i<Game.MAX_USERS;i++) {
 				
 			u=players.get(i);
 				
@@ -294,8 +316,81 @@ public class Database {
 	}
 
 	public Game readGame(int gameID) {
-
-		return null;
+		//"SELECT game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number FROM game WHERE game_id = ?"
+		System.out.println("reading game");
+		Game g=null;
+		try {
+			readGame.setInt(1,gameID);
+			ResultSet rsg=readGame.executeQuery();
+			//creating game
+			if (rsg.next()) {
+				g = new Game(rsg.getInt(1));
+			
+			Integer p1=rsg.getInt(2);
+			Integer p2=rsg.getInt(3);
+			Integer p3=rsg.getInt(4);
+			Integer p4=rsg.getInt(5);
+			
+			ArrayList<Integer> al=new ArrayList<Integer>(Arrays.asList(p1, p2, p3,p4));
+			
+			int amountOfPlayers=2;
+			
+			if(p3!=null)amountOfPlayers++;
+			if(p4!=null)amountOfPlayers++;
+			
+			for(int i=0;i<amountOfPlayers;i++) {
+				
+				g.addPlayer(readUser(al.get(i)));
+			}
+			
+			//add cards
+			
+			List<User> l =g.getPlayers();
+			
+			for(int i=0;i<amountOfPlayers;i++) {
+				
+				List <Card> lc=g.getHand(l.get(i));
+				
+				
+				readCard.setInt(1, gameID);
+				readCard.setInt(2, l.get(i).getId());
+				
+				ResultSet rs=readCard.executeQuery();
+				
+				while(rs.next()) {
+					
+					
+					lc.add(new Card(rs.getInt(1),rs.getInt(2)));
+					
+					
+				}
+				
+				
+				
+			}
+			
+			
+			//set rest of the values.
+			
+			g.setStarted(true);
+			
+			g.setTurn(rsg.getInt(6));
+			g.setDirection(rsg.getInt(7));
+			g.setLastColour(rsg.getInt(8));
+			g.setLastNumber(rsg.getInt(9));
+			
+			g.removeHandsFromStack();
+			g.shuffleCards();
+			
+			
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		System.out.println("read game");
+		return g;
 	}
 
 	public void deleteGame() {
