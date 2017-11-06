@@ -15,26 +15,37 @@ import java.util.List;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import model.Card;
+import model.Card.Colour;
+import model.User;
 
 public interface Communication extends Remote {
     
-    String login(String name, String password) throws RemoteException;
+    int login(String name, String password) throws RemoteException;
     public boolean createNewAccount(String username, String password)throws RemoteException;
     
-    int getPublicGame(String name) throws RemoteException, InterruptedException;
+    int getPublicGame(int userID) throws RemoteException, InterruptedException;
 
+    public boolean getStarted(int gameID) throws RemoteException;
     
-    
-    String getSpelersList(int gameID) throws RemoteException;
-
+    public List<User> getSpelersList(int gameID) throws RemoteException;
+    public List<Integer> getSpelersHandSize(int gameID) throws RemoteException;
     public List<Card> getHand(int gameID, int userID) throws RemoteException;
 
     public List<Card> drawCard (int gameID, int userID) throws RemoteException;
-    public Card getLatestPlayedCard(String userName, int gameID, int latestReceivedMove) throws RemoteException;
+    public boolean playCard(int userID, int gameID, Card card) throws RemoteException;
+    public void setPrefered(int gameID, int userID, Colour c)throws RemoteException;
+    public Colour getCurrentColour(int gameID) throws RemoteException;
     
-    public void playCard(String userName, int gameID, Card card) throws RemoteException;
+    public int getLastMove (int gameID) throws RemoteException;
+    public Card getLatestPlayedCard(int userID, int gameID, int latestReceivedMove) throws RemoteException;
+    public Card getLatestPlayedCard(int gameID) throws RemoteException;
+    public boolean myTurn(int gameID, int userID) throws RemoteException;
+    
+    
+    
+    public boolean logout(int userID) throws RemoteException;
 
-    String logout(String name) throws RemoteException;
+    
 
     
 

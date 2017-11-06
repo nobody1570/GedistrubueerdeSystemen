@@ -54,8 +54,8 @@ public class LoginController implements Initializable {
         System.out.println(username.getText() + " "+ password.getText());
         //controleren gegevens zenden naar server
         //pw gwn doorsturen TODO
-        String r = impl.login(username.getText(),password.getText());
-        System.out.println(r);
+        int userID = impl.login(username.getText(),password.getText());
+        System.out.println(userID + " "+ username.getText());
         //met DB
         /*try{
             Class.forName("com.mysql.jdbc.Driver");
@@ -64,7 +64,7 @@ public class LoginController implements Initializable {
             ResultSet rs = st.execu
         }*/
         //if gegevens ok login else geef foutmelding
-        if (!r.equals("nok")){
+        if (userID >= 0){
             //redirect naar lobby
             controller = new Controller();
             
@@ -72,7 +72,7 @@ public class LoginController implements Initializable {
             Scene scene = new Scene(root);
             Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
             window.setScene(scene);
-            controller.redirectLobby(username.getText(),impl,myRegistry);
+            controller.redirectLobby(userID,impl,myRegistry, username.getText());
             window.show();
             
             

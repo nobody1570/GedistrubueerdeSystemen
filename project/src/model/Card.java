@@ -6,11 +6,12 @@
 package model;
 
 import java.awt.Rectangle;
+import java.io.Serializable;
 import javafx.scene.Parent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
-public class Card extends Parent{
+public class Card extends Parent implements Serializable{
 
 	Colour c;
 	int number;
@@ -45,9 +46,16 @@ public class Card extends Parent{
 		
 	}
 
-    public Card() {
-        
-    }
+        public int getColourValue() {		   		
+                switch (c) {		
+                     case RED: return 0; 		
+                     case GREEN: return 1; 		
+                     case BLUE: return 2; 		
+                     case YELLOW: return 3; 		
+                     case ANY: return 4; 		
+                     default: return -1;		
+                }		
+        }
 	
 	public Colour getColour() {
 		return c;

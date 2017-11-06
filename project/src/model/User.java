@@ -5,8 +5,9 @@
  */
 package model;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
-public class User {
+public class User implements Serializable{
 
 	int id;
 	String login;

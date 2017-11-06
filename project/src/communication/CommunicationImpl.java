@@ -21,139 +21,197 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Card;
+import model.Card.Colour;
 import model.Database;
 import model.Game;
 import model.User;
 
 public class CommunicationImpl extends UnicastRemoteObject implements Communication{
-	private Database db;
-	private List<Game> games;
-	private Set<User> userList;
-	
-	
-	public CommunicationImpl () throws RemoteException{
-            db = new Database();
-            games = new ArrayList<Game>();
-            userList = new HashSet<User>();
-		
-	}
-	@Override
-        public boolean createNewAccount(String username, String password) throws RemoteException{
-            if (db.readUser(username) == null){
-                User u = new User(db.getHighestID()+1,username,password,"");
-                db.createUser(u);
-                return true;
-            }
-            return false;
-        }
-        
-        @Override
-	public String login(String name, String pw) throws RemoteException {
-            //controleer login in DB
-            User u = db.readUser(name);
-            
-            
-		if (u != null && pw.equals(u.getPassword())){
-			userList.add(u);
-                        //token returnen
-			return "ok";
-		}
-		return "nok";
-	}
-        
-	
-	
-	@Override
-        public int getPublicGame(String name) throws RemoteException, InterruptedException{
-            //kijken voor plaats in de games
-            User u = db.readUser(name);
-            int gameFound = -1;Game game;
-            for (int i=0; i<games.size();i++){
-                game = games.get(i);
-                if (game.getAmountOfPlayers()<game.MAX_USERS){
-                    //plaats gevonden add player
-                    
-                    game.addPlayer(u);
-                    gameFound = i;
-                    
-                }
-            }
-            if(gameFound<0){
-                gameFound = games.size();
-                Game g = new Game(gameFound);
-                g.addPlayer(u);
-                
-                games.add(g);
-                
-            }
-            
-            
-            return gameFound;
-        }
+    private Database db;
+    private List<Game> games;
+    private Set<User> userList;
 
-	
-	
-	@Override
-	public String logout(String name) throws RemoteException {
-            //disable token
-            
-		if (userList.contains(name)){
-			userList.remove(name);
-			return "ok";
-		}
-		return "logout failed!";
-	}
 
-	@Override
-	public String getSpelersList(int gameID) throws RemoteException {	
-            //get spelers in current game
-		return userList.toString();
-	}
-	@Override
-        public List<Card> getHand(int gameID, int userID){
-            User u = db.readUser(userID);
-            //lookup in DB op gameiD
-            Game game = getGameByID(int gameID);
-            List<Card> hand = game.getHand(u);
-            return null;
-        }
+    public CommunicationImpl () throws RemoteException{
+        db = new Database();
+        games = new ArrayList<Game>();
+        userList = new HashSet<User>();
+
+    }
 
     @Override
-    public List<Card> drawCard(int gameID, int userID) throws RemoteException {
-        //get user by id
-        User u = db.readUser(userID);
-        //get game by id
-        Game g;
-        g= getGameByID(int gameID);
+    public boolean createNewAccount(String username, String password) throws RemoteException{
+        System.out.println("create user rmi");
+        if (db.readUser(username) == null){
+            System.out.println("user bestaat niet");
+            User u = new User(db.getHighestID()+1,username,"",password);
+            db.createUser(u);
+            System.out.println("user created");
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public int login(String name, String pw) throws RemoteException {
+        //controleer login in DB
+        System.out.println("login rmi");
+        User u = db.readUser(name);
         
-        //perform turn
-        g.performTurn(u, null);
-        //get playerhand
+        //System.out.println(pw + " && "+ u.getPassword());
+
+            if (u != null && pw.equals(u.getPassword())){
+                    userList.add(u);
+                    //token returnen
+                    return u.getId();
+            }
+            return -1;
+    }
+
+    @Override
+    public int getPublicGame(int userID) throws RemoteException, InterruptedException{
+        //kijken voor plaats in de games
+        User u = getUserByID(userID);
+        int gameFound = -1;
+        Game game;
+        for (int i=0; i<games.size();i++){
+            game = games.get(i);
+            if (game.getAmountOfPlayers()<game.MAX_USERS && !game.getStarted()){
+                //plaats gevonden add player
+
+                game.addPlayer(u);
+                gameFound = i;
+                if(game.getAmountOfPlayers()==game.MAX_USERS){
+                    game.start();
+                }
+            }
+        }
+        if(gameFound<0){
+            gameFound = games.size();
+            Game g = new Game(gameFound);
+            g.addPlayer(u);
+
+            games.add(g);
+
+        }
+        System.out.println(games.size());
+        System.out.println(games);
+        
+        return gameFound;
+    }
+
+    @Override
+    public boolean logout(int userID) throws RemoteException {
+        //disable token
+        User u = getUserByID(userID);
+        
+            if (userList.contains(u)){
+                    userList.remove(u);
+                    return true;
+            }
+            return false;
+    }
+
+    @Override
+    public List<User> getSpelersList(int gameID) throws RemoteException {	
+        //get spelers in current game
+        Game g = getGameByID(gameID);
+        
+        return g.getPlayers();
+    }
+    
+    @Override
+    public List<Integer> getSpelersHandSize(int gameID) throws RemoteException {
+        Game g = getGameByID(gameID);
+        List<Integer> handSizes = new ArrayList<>();
+        for (User u: g.getPlayers()){
+            handSizes.add(g.getHand(u).size());
+        }
+        return handSizes;
+    }
+    
+    @Override
+    public List<Card> getHand(int gameID, int userID){
+        User u = getUserByID(userID);
+        //lookup in DB op gameiD
+        Game g = getGameByID(gameID);
         List<Card> hand = g.getHand(u);
         return hand;
     }
 
     @Override
-    public synchronized Card getLatestPlayedCard(String userName, int gameID, int latestReceivedMove) throws RemoteException {
+    public synchronized List<Card> drawCard(int gameID, int userID) throws RemoteException {
+        //get user by id
+        User u = getUserByID(userID);
+        //get game by id
+        Game g = getGameByID(gameID);
+        
+        //perform turn
+        if(g.performTurn(u, null)){
+            //get playerhand
+            List<Card> hand = g.getHand(u);
+            notifyAll();
+            return hand;
+        }
+        else {
+            //zou nooit mogen gebeuren
+            return null;
+        }
+        
+    }
+
+    @Override
+    public synchronized Card getLatestPlayedCard(int userID, int gameID, int latestReceivedMove) throws RemoteException {
+        System.out.println("server: getlatestCard");
         //get game, look in game for latest card
-        Game g = new Game();
-        Card c = new Card();
+        Game g = getGameByID(gameID);
+        Card c = null;
         try {
+            
             wait();
+            c = g.getLastCard();
         } catch (InterruptedException ex) {
             Logger.getLogger(CommunicationImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
         return c;
         
     }
+    
+    @Override
+    public Card getLatestPlayedCard(int gameID) throws RemoteException {
+        System.out.println("server: getlatestCard");
+        //get game, look in game for latest card
+        Game g = getGameByID(gameID);
+ 
+        return g.getLastCard();
+        
+    }
         
     @Override
-    public synchronized void playCard(String name, int GameID, Card card) throws RemoteException{
+    public synchronized boolean playCard(int userID, int gameID, Card card) throws RemoteException{
+        System.out.println("server: playcard");
         //zoek game met id in db en return
         //controleer als card is playable adhv last played card
         //set last palyed card
         //notify all (getLastPlayedCard)
-            
+        boolean succes;
+        Game g = getGameByID(gameID);
+        User u = getUserByID(userID);
+        succes = g.performTurn(u, card);
+        notifyAll();
+        return succes;
+    }
+    @Override
+    public void setPrefered(int gameID, int userID, Colour c)throws RemoteException{
+        Game g = getGameByID(gameID);
+        User u = getUserByID(userID);
+        g.SetPreferredColour(u, c);
+    }
+    
+    @Override
+    public boolean getStarted(int gameID) throws RemoteException {
+        Game g = getGameByID(gameID);
+        return g.getStarted();
     }
     
     public Game getGameByID(int gameID){
@@ -164,6 +222,50 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         }
         return null;
     }
+    
+    public User getUserByID(int userID){
+        for (User u: userList){
+            if(u.getId()==userID){
+                return u;
+            }
+            
+        }
+        User u =db.readUser(userID);
+        return u;
+    }
+
+    @Override
+    public synchronized boolean myTurn(int gameID, int userID) throws RemoteException{
+        System.out.println("myturn serverside");
+        User u = getUserByID(userID);
+        Game g = getGameByID(gameID);
+        
+        while(!u.equals(g.getPlayers().get(g.getTurn()))){
+            System.out.println("speler: "+ u + "wacht op beurt: "+g.getTurn());
+            try {
+                wait();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(CommunicationImpl.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.out.println("gedaan met wachten myturn: "+u+ "turn is nu: "+g.getTurn());
+        }
+        return true;
+    }
+
+    @Override
+    public Colour getCurrentColour(int gameID) throws RemoteException {
+        Game g = getGameByID(gameID);
+        return g.getCurrent();
+    }
+
+    @Override
+    public int getLastMove(int gameID) throws RemoteException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    
+
+   
 
     
 }

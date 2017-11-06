@@ -6,11 +6,22 @@
 package gui;
 
 import communication.Communication;
+import communication.CommunicationImpl;
+import communication.UpdateGameThread;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -19,10 +30,22 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import model.Card;
+import model.Card.Colour;
 import model.Game;
+import model.User;
 
 /**
  * FXML Controller class
@@ -32,18 +55,31 @@ import model.Game;
 public class GameController implements Initializable {
     private static Communication impl;
     private static Registry myRegistry;
-    private static String userName;
-
+    private static String username;
+    
+    
     //game info
     private static int gameID;
     private static int userID;
-    @FXML
-    private Group hand = new Group() ;
     
+    
+    private ObservableList<Card> hand = FXCollections.observableArrayList();
+    private ObservableList<User> players = FXCollections.observableArrayList();
+    private ObservableList<Integer> handSizes = FXCollections.observableArrayList();
+
+   
+    @FXML public ListView<Card> handView;
+    @FXML public ListView<User> userView;
+    @FXML public ListView<Integer> handsizeView;
+    
+    @FXML public Label lastCard;
+    @FXML public Button draw;
+    @FXML public Button playCard;
+    @FXML Button load;
     @FXML
     private Stage stage;
     @FXML 
-    private Label username;
+    private Label usernameLabel;
     
     //id user in game
     
@@ -52,13 +88,50 @@ public class GameController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
+        //handView.setItems(hand);
+        handView.setItems(hand);
+        handView.setCellFactory((ListView<Card> p) -> {
+            ListCell<Card> cell = new ListCell<Card>(){
+                
+                @Override
+                protected void updateItem(Card t, boolean bln) {
+                    super.updateItem(t, bln);
+                    if (t != null) {
+                        setText(t.getColour()+ ":" + t.getNumber());
+                    }
+                }
+                
+            };
+            
+            return cell;
+        });
+        //handView.getSelectionModel().getSelectionMode(Selectionmode.MULTIPLE);
+        //users toevoegen
+        userView.setItems(players);
+        userView.setCellFactory((ListView<User> p) -> {
+            ListCell<User> cell = new ListCell<User>(){
+                
+                @Override
+                protected void updateItem(User t, boolean bln) {
+                    super.updateItem(t, bln);
+                    if (t != null) {
+                        setText(t.getLogin()+ ":");
+                    }
+                }
+                
+            };
+            
+            return cell;
+        });
+        handsizeView.setItems(handSizes);       
     } 
     
     public void setStage(Stage stage){
         this.stage = stage;
     }
     @FXML
-    public void returnToLobby(ActionEvent event) throws IOException{     
+    public void returnToLobby(ActionEvent event) throws IOException{ 
+        
         Parent root = FXMLLoader.load(getClass().getResource("/gui/lobby.fxml"));
         Scene scene = new Scene(root);
         Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
@@ -66,39 +139,201 @@ public class GameController implements Initializable {
 
         window.show();
     }
+    
+    
+    @FXML
+    public void loadGame(ActionEvent event)throws IOException, RemoteException, InterruptedException{
+        usernameLabel.setText(username);
+        if(impl.getStarted(gameID)){
+            
+            load.setVisible(false);
+            draw.setVisible(false);
+            playCard.setVisible(false);
+            update();
+            System.out.println("updated");
+            play();
+            load.setDisable(true);
+        }
+        else{
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("game not started yet, still waiting for others players, try later again!");
 
-    public void redirectGame(int gameID, Communication impl, Registry myRegistry) {
-        this.gameID = gameID;
-        this.impl = impl;
-        this.myRegistry = myRegistry;      
+            alert.showAndWait();
+        }
+        userView.getItems().setAll(impl.getSpelersList(gameID));
+    }
+
+    public void reportAndLogException(final Throwable t)throws RemoteException{
+    Platform.runLater(() -> {
+        System.out.println("in update");
+        List<Card> hands;
+        try {
+            hands = impl.getHand(gameID, userID);
+            
+            handView.getItems().setAll(hands);
+            //playerListView.getItems().setAll(impl.getSpelersList(gameID));
+            Card c = impl.getLatestPlayedCard(gameID);
+            //indien colour last played = any
+            if(c.getColour()==Colour.ANY){
+                Colour current = impl.getCurrentColour(gameID);
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Warning Dialog");
+                alert.setHeaderText("New Colour is: "+ current);
+                alert.setContentText("be careful, colour has changed!");
+                
+                alert.showAndWait();
+            }
+            lastCard.setText(c.toString());
+            //handsizes wijzigen
+            List<Integer> handS = impl.getSpelersHandSize(gameID);
+            handsizeView.getItems().setAll(handS);
+            System.out.println("einde update"); 
+        } catch (RemoteException ex) {
+            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    });
+  }
+    
+    
+    public synchronized void update() throws RemoteException{
+        try{
+            System.out.println("in update");
+            List<Card> hands;
+                
+            hands = impl.getHand(gameID, userID);
+
+            handView.getItems().setAll(hands);
+            //playerListView.getItems().setAll(impl.getSpelersList(gameID));
+            Card c = impl.getLatestPlayedCard(gameID);
+            //indien colour last played = any
+            if(c.getColour()==Colour.ANY){
+                Colour current = impl.getCurrentColour(gameID);
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Warning Dialog");
+                alert.setHeaderText("New Colour is: "+ current);
+                alert.setContentText("be careful, colour has changed!");
+
+                alert.showAndWait();
+            }
+            lastCard.setText(c.toString());
+            //handsizes wijzigen
+            List<Integer> handS = impl.getSpelersHandSize(gameID);
+            handsizeView.getItems().setAll(handS);
+            System.out.println("einde update"); 
+
+        }
+        catch (Exception e)
+        {
+        reportAndLogException(e);
+        }
     }
     
-    public void loadGame(int gameID) throws RemoteException{
-        impl.getSpelersList(gameID);
+    @FXML public void playCard(ActionEvent event)throws RemoteException{
+        System.out.println("playCard");
+        Card c = handView.getSelectionModel()
+            .getSelectedItem();
         
-        //get hand via comm
-        
-        hand = (Group) impl.getHand(gameID,userID);
-/*
-        hand.getChildren().clear() ;
+        if (c != null) {
+            //TODO kaart controleren clientside
+            if (c.getNumber()>=13){
+                //kleur vragen aan gebruiker
+                List<Colour> choices = new ArrayList<>();
+                choices.add(Colour.BLUE);
+                choices.add(Colour.RED);
+                choices.add(Colour.GREEN);
+                choices.add(Colour.YELLOW);
 
-         for ( int card_index  =  0 ;
-                   card_index  <  5 ;
-                   card_index  ++ )
-         {
-            Card new_card = card_deck.get_card() ;
-
-            double card_position_x = 40 + ( Card.CARD_WIDTH + 20 ) * card_index ;
-            double card_position_y = 50 ;
-
-            new_card.set_card_position( card_position_x, card_position_y ) ;
-
-            hand.getChildren().add( new_card ) ;
-         }*/
+                ChoiceDialog<Colour> dialog;
+                dialog = new ChoiceDialog<>(Colour.BLUE, choices);
+                dialog.setTitle("choose a colour");
+                dialog.setHeaderText("What colour do you prefer?");
+                dialog.setContentText("Colour:");
+                Optional<Colour> result = dialog.showAndWait();
+                result.ifPresent(
+                    letter -> {
+                        try {
+                            impl.setPrefered(gameID, userID, letter);
+                        } catch (RemoteException ex) {
+                            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }         
+                );
+                
+                
+            }
+            
+            
+            //controleer if playable
+            hand.remove(c);
+            
+            impl.playCard(userID, gameID, c);
+        }
+        draw.setVisible(false);
+        playCard.setVisible(false);
+        play();
          
-         //get last played card
-         
-         //
+    }
+    
+    @FXML void drawCard()throws RemoteException{
+        System.out.println("drawCard");
+        impl.drawCard(gameID, userID);
         
+        draw.setDisable(true);
+        playCard.setDisable(true);
+        draw.setVisible(false);
+        playCard.setVisible(false);
+        play();
+    }
+    
+    public void play() throws RemoteException{
+        System.out.println("in play");
+        //thread vraagt om laatst gespeelde kaart, erna alle spelers updaten en kijken indien het spel afgelopen zou zijn
+        //new UpdateGameThread(this,gameID,userID,myRegistry,impl).start();
+        
+        //not finished
+        //System.out.println("threadstarted");
+        
+        //TODO nieuwe task maken om regelmatig laatste kaart up te daten    
+        
+            
+        Task task = new Task<Void>() {
+            @Override public synchronized Void call() throws RemoteException, InterruptedException {
+                
+                if (impl.getStarted(gameID)){
+                    if(impl.myTurn(gameID,userID)){
+                        Platform.runLater(() -> {
+                            try {
+                                System.out.println("my turn");
+                                update();
+                                draw.setDisable(false);
+                                playCard.setDisable(false);
+                                draw.setVisible(true);
+                                playCard.setVisible(true);
+                                System.out.println("buttons enabled");
+                            } catch (RemoteException ex) {
+                                Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        });
+                        
+                    }
+
+                }
+                return null;
+            }
+        };
+
+        new Thread(task).start();
+
+        
+    }
+    
+    public void redirectGame(int gameID, int userID, Communication impl, Registry myRegistry, String username) {
+        this.gameID = gameID;
+        this.impl = impl;
+        this.myRegistry = myRegistry;    
+        this.userID = userID;
+        this.username = username;
     }
 }

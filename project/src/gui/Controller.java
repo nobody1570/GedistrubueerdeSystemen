@@ -32,6 +32,7 @@ import model.Game;
 public class Controller implements Initializable{
     private static Communication impl;
     private static Registry myRegistry;
+    private static int userID;
     private static String username;
     
     private GameController gameController;
@@ -41,7 +42,8 @@ public class Controller implements Initializable{
     private Label userName;
     
     @Override
-    public void initialize(URL url, ResourceBundle rb) {        
+    public void initialize(URL url, ResourceBundle rb) {   
+        
     }
 
     public void setStage(Stage stage){
@@ -55,16 +57,16 @@ public class Controller implements Initializable{
                 
                     
         //searchGame();
-        int gameID = impl.getPublicGame(username);
-                
+        int gameID = impl.getPublicGame(userID);
+        System.out.println("gameID: "+gameID);        
         gameController = new GameController();
-        gameController.redirectGame(gameID,impl,myRegistry);
+        gameController.redirectGame(gameID,userID,impl,myRegistry,username);
         
         Parent root = FXMLLoader.load(getClass().getResource("/gui/gameView.fxml"));
         Scene scene = new Scene(root);
         Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
         window.setScene(scene);
-        gameController.loadGame(gameID);
+        //gameController.loadGame(gameID);
         window.show();
     }
     
@@ -73,10 +75,12 @@ public class Controller implements Initializable{
         
     }
 
-    void redirectLobby(String username, Communication impl, Registry myRegistry) {
-        this.username = username;
+    void redirectLobby(int userID, Communication impl, Registry myRegistry, String username) {
+        
+        this.userID = userID;
         this.impl = impl;
         this.myRegistry = myRegistry;
+        this.username = username;
     }
     
     

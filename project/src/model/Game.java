@@ -85,14 +85,15 @@ public class Game {
 
 	}
 
-    public Game() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    
 
-	private void shuffleCards() {
+	public void shuffleCards() {
 		Collections.shuffle(deck);
 	}
 
+        public Card getLastCard(){
+            return LastCard;
+        }
 	
 	public void addPlayer(User u) {
 		//niet in spel en nog plaats vrij
@@ -113,7 +114,17 @@ public class Game {
 			}
 			
 			//TODO eventueel kaarten toevoegen
-			
+			if(started&&found) {
+					
+					int max=0;
+					//find max amount of cards
+					for(int j=0;j<amountOfPlayers;j++) {
+						if(cards.get(j).size()>max) {max=cards.get(j).size();}
+					}
+					
+					//give that amount to new player
+					takeCards(u,max);
+				}
 		}
 		
 	}
@@ -146,7 +157,11 @@ public class Game {
 				}
 				i++;
 			}
-			
+			if(turn>amountOfPlayers-1) {
+					
+					turn++;
+					turn=turn%(amountOfPlayers+1);
+				}
 			
 			//TODO kaarten op deck smijten
 		}
@@ -179,7 +194,28 @@ public class Game {
 		
 	}
 	
-	
+	public void start() {
+            if(amountOfPlayers>1){
+                started=true;
+                for(int i=0;i<amountOfPlayers;i++) {
+
+                    takeCards(users.get(i),7);
+                }
+                Card c;
+                do{
+                    c=deck.getFirst();
+                    shuffleCards();
+                    System.out.println("beginkaart: "+c);
+                
+                }while(c.getColour() == Colour.ANY && c.getNumber()>=10);
+                
+                LastCard = c;
+                current= c.getColour();
+                deck.remove(c);
+                
+	    }
+            
+	}
 	
 	
 	public void SetPreferredColour(User u,Colour c) {
@@ -196,27 +232,17 @@ public class Game {
 		if(u.equals(users.get(turn))) {
 			
 			if(c!=null) {
-				
-				
-				ok=playCard(u,c);
-				if(ok)endTurn();
+                            ok=playCard(u,c);
+                            if(ok)endTurn();
 				
 			}
 			
-			else
-				
-			{
-				
-				takeCard(u);
-				endTurn();
-                                ok = true;
-				
-			}
-			
-			
-			
-		}
-		
+			else{				
+                            takeCard(u);
+                            endTurn();
+                            ok = true;				
+			}			
+		}		
 		return ok;
 	}
 	
@@ -234,12 +260,9 @@ public class Game {
 				if(!deck.isEmpty())
 				cards.get(i).add(deck.removeFirst());
 				//nog else nodig indien deck leeg is refill?
-			}
-			
+			}			
 			i++;
-		}
-		
-		
+		}				
 	}
 	
 	
@@ -299,35 +322,30 @@ public class Game {
 		if(turn<0)turn=turn+amountOfPlayers;
 		turn=turn%amountOfPlayers;
 	}
+        
+        public List<User> getPlayers(){
+            return users;
+        }
 	
 	//gebruikt in performCardActions
-		private void takeCards(User u,int a) {
-			boolean found=false;
-			int i=0;
-			if(users.contains(u))
-			while(i<MAX_USERS&&!found) {
-				
-				if (users.get(i).equals(u)) {
-					found=true;
-					
-					for(int j=0;j<a&&!deck.isEmpty();j++) {
-						cards.get(i).add(deck.removeFirst());
-						}
-					
-					
-					
-				}
-				
-				i++;
-			}
-			
-			
-		}   
+        private void takeCards(User u,int a) {
+                boolean found=false;
+                int i=0;
+                if(users.contains(u))
+                while(i<MAX_USERS&&!found) {
 
+                        if (users.get(i).equals(u)) {
+                                found=true;
 
+                                for(int j=0;j<a&&!deck.isEmpty();j++) {
+                                        cards.get(i).add(deck.removeFirst());
+                                        }
+                        }
 
-	
-	
+                        i++;
+                }
+        }   
+
 	//probleem!
 	//kan niet werken User.equals kijkt alleen naar het id v/d user
 	//is beter als users hun eigen id doorgeven.
@@ -351,13 +369,71 @@ public class Game {
     	public int getId() {
     		return id;
     	}
+        
+        public int getTurn(){
+            return turn;
+        }
+        public void setTurn(int turn) {
+            this.turn=turn;
+        }
+        
+        public int getDirection() {
+            return direction;
+        }
+        
+        public void setDirection(int direction) {		
+            this.direction=direction;
+        }
+        
+        public int getLastColour() {		
+            switch (current) {		
+            case GREEN: return 1; 		
+            case BLUE: return 2; 		
+            case YELLOW: return 3; 		
+            case ANY: return 4; 		
+            default: return -1;		
+           }		
+        }
+        
+        public void setLastColour(int lastColour) {		
+            switch (lastColour) {		
+            case 0: current=Colour.RED; break;		
+            case 1: current=Colour.GREEN; break;		
+            case 2: current=Colour.BLUE; break;		
+            case 3: current=Colour.YELLOW; break;		
+            }		
+        }
+        
+        public int getLastNumber() {
+            return LastCard.getNumber();
+        }
+        
+        public void setLastNumber(int lastNumber) {
+            LastCard=new Card(-1,lastNumber);
+        }
+        
+        //ONLY USE IN DATABASE-CLASS!!!!!!!!!!!!!!!
+        public void removeHandsFromStack() {
+            for(int i=0;i<MAX_USERS;i++) {		
+                for(Card c:cards.get(i)){
+                    deck.remove(c);
+                }		
+                        
+            }
+        }
+        
+        public Colour getCurrent() {
+            return current;
+        }
+        
+        @Override
+        public String toString() {
+                return "Game [users=" + users + ",\n cards=" + cards + ",\n  started=" + started + ",\n  amountOfPlayers="
+                                + amountOfPlayers + ",\n turn=" + turn + ",\n direction=" + direction + ",\n LastCard=" + LastCard
+                                + ",\n current=" + current + ",\n preferred=" + preferred + "]";
+        }
 
-		@Override
-		public String toString() {
-			return "Game [users=" + users + ",\n cards=" + cards + ",\n  started=" + started + ",\n  amountOfPlayers="
-					+ amountOfPlayers + ",\n turn=" + turn + ",\n direction=" + direction + ",\n LastCard=" + LastCard
-					+ ",\n current=" + current + ",\n preferred=" + preferred + "]";
-		}
+    
 
     	
 	
