@@ -11,6 +11,7 @@ package communication;
  */
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,24 +21,27 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Card;
+import model.Database;
 import model.Game;
 import model.User;
 
 public class CommunicationImpl extends UnicastRemoteObject implements Communication{
-	
-	private Set<Game> games;
-	private Set<String> userList;
+	private Database db;
+	private List<Game> games;
+	private Set<User> userList;
 	
 	
 	public CommunicationImpl () throws RemoteException{
-		games = new HashSet<Game>();
-		userList = new HashSet<String>();
+            db = new Database();
+            games = new ArrayList<Game>();
+            userList = new HashSet<User>();
 		
 	}
 	@Override
         public boolean createNewAccount(String username, String password) throws RemoteException{
-            if (!userList.contains(username)){
-                userList.add(username);
+            if (db.readUser(username) == null){
+                User u = new User(db.getHighestID()+1,username,password,"");
+                db.createUser(u);
                 return true;
             }
             return false;
@@ -46,8 +50,11 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         @Override
 	public String login(String name, String pw) throws RemoteException {
             //controleer login in DB
-		if (userList.contains(name)){
-			
+            User u = db.readUser(name);
+            
+            
+		if (u != null && pw.equals(u.getPassword())){
+			userList.add(u);
                         //token returnen
 			return "ok";
 		}
@@ -59,16 +66,29 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 	@Override
         public int getPublicGame(String name) throws RemoteException, InterruptedException{
             //kijken voor plaats in de games
-            /*games.forEach( game ->{
-                if (game.users.size()<game.MAX_USERS){
+            User u = db.readUser(name);
+            int gameFound = -1;Game game;
+            for (int i=0; i<games.size();i++){
+                game = games.get(i);
+                if (game.getAmountOfPlayers()<game.MAX_USERS){
                     //plaats gevonden add player
-                    User u = db.getUser(name);
+                    
                     game.addPlayer(u);
+                    gameFound = i;
+                    
                 }
-            });*/
+            }
+            if(gameFound<0){
+                gameFound = games.size();
+                Game g = new Game(gameFound);
+                g.addPlayer(u);
+                
+                games.add(g);
+                
+            }
             
             
-            return 0;
+            return gameFound;
         }
 
 	
@@ -76,6 +96,7 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 	@Override
 	public String logout(String name) throws RemoteException {
             //disable token
+            
 		if (userList.contains(name)){
 			userList.remove(name);
 			return "ok";
@@ -89,21 +110,27 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 		return userList.toString();
 	}
 	@Override
-        public List<Card> getHand(int gameID, String userName){
+        public List<Card> getHand(int gameID, int userID){
+            User u = db.readUser(userID);
             //lookup in DB op gameiD
-            Game game = new Game();
-            List<Card> hand = game.getHand(userName);
+            Game game = getGameByID(int gameID);
+            List<Card> hand = game.getHand(u);
             return null;
         }
 
     @Override
-    public Card drawCard(String userName, int gameID) throws RemoteException {
-        //controleer als speler aan beurt is
-        //neem kaart van stapel (beurt +)
-        //return kaart
-        //volgende speler is aan zet
-        Card c = new Card();
-        return c;
+    public List<Card> drawCard(int gameID, int userID) throws RemoteException {
+        //get user by id
+        User u = db.readUser(userID);
+        //get game by id
+        Game g;
+        g= getGameByID(int gameID);
+        
+        //perform turn
+        g.performTurn(u, null);
+        //get playerhand
+        List<Card> hand = g.getHand(u);
+        return hand;
     }
 
     @Override
@@ -127,6 +154,15 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         //set last palyed card
         //notify all (getLastPlayedCard)
             
+    }
+    
+    public Game getGameByID(int gameID){
+        for (Game g : games){
+            if(g.getId()==gameID){
+                return g;
+            }
+        }
+        return null;
     }
 
     

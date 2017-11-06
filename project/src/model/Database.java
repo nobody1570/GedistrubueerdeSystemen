@@ -7,14 +7,17 @@ import java.sql.SQLException;
 
 public class Database {
 
-	Connection con;
-	PreparedStatement createUser;
-	PreparedStatement updateUser;
-	PreparedStatement deleteUser;
-	PreparedStatement getUser;
-	PreparedStatement getUserWithLogin;
+	private Connection con;
+	private PreparedStatement createUser;
+	private PreparedStatement updateUser;
+	private PreparedStatement deleteUser;
+	private PreparedStatement getUser;
+	private PreparedStatement getUserWithLogin;
+        private PreparedStatement getHighestUserID;
+        
 
-	Database() {
+	public Database() {
+            
 		try {
 			Class.forName("org.sqlite.JDBC");
 
@@ -41,6 +44,9 @@ public class Database {
 				String deleteUserString = "DELETE FROM User WHERE id = ?";
 				deleteUser = con.prepareStatement(deleteUserString);
 
+                                String getHighestUserIDString = "SELECT MAX(id) FROM User";
+                                getHighestUserID = con.prepareStatement(getHighestUserIDString);
+                                
 				System.out.println("ready");
 			}
 
@@ -52,7 +58,7 @@ public class Database {
 
 	}
 
-	void closeConnection() {
+	public void closeConnection() {
 
 		if (con != null) {
 			try {
@@ -68,7 +74,7 @@ public class Database {
 
 	// https://docs.oracle.com/javase/tutorial/jdbc/basics/prepared.html
 	// preparedstatements in constructor maken en hier invullen en uitvoeren
-	void createUser(User u) {
+	public void createUser(User u) {
 		// "INSERT INTO User(id, login, password) VALUES"(?,?,?)
 
 		System.out.println("creating new user");
@@ -85,7 +91,7 @@ public class Database {
 
 	}
 
-	User readUser(String login) {
+	public User readUser(String login) {
 		//SELECT id, login, salt_password, password, salt_token, token, timestamp FROM User WHERE login = ?
 		
 		System.out.println("reading user");
@@ -108,7 +114,7 @@ public class Database {
 		return result;
 	}
 
-	User readUser(int i) {
+	public User readUser(int i) {
 
 		// SELECT id, login, salt_password, password, salt_token, token, timestamp FROM
 		// User WHERE id = ?
@@ -133,7 +139,7 @@ public class Database {
 		return result;
 	}
 
-	void updateUser(User u) {
+	public void updateUser(User u) {
 		// Timestamp ID NIET Ge�mplementeerd!
 		// UPDATE User SET salt_password = ?, password = ?, salt_token = ?, token = ?,
 		// timestamp = ? WHERE id = ?
@@ -155,14 +161,34 @@ public class Database {
 		}
 
 	}
+        
+        public int getHighestID(){
+            System.out.println("searching highest user id");
+            int maxID = -1;
+            try {
 
-	void deleteUser(User u) {
+			getHighestUserID.execute();
+                        ResultSet rs = getHighestUserID.getResultSet();
+			
+                        if (rs.next()){
+                            maxID = rs.getInt(0);
+                        }
+                                System.out.println("max id received");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+                }
+            return maxID;
+                
+        }
+
+	public void deleteUser(User u) {
 
 		deleteUser(u.getId());
 
 	}
 
-	void deleteUser(int i) {
+	public void deleteUser(int i) {
 
 		// DELETE User WHERE id = ?
 		System.out.println("deleting user");
@@ -179,16 +205,16 @@ public class Database {
 
 	}
 
-	void saveGame() {
+	public void saveGame() {
 
 	}
 
-	Game readGame() {
+	public Game readGame(int gameID) {
 
 		return null;
 	}
 
-	void deleteGame() {
+	public void deleteGame() {
 
 	}
 

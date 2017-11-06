@@ -125,6 +125,9 @@ public class Game {
 		
 		return count;
 	}
+        public int getAmountOfPlayers(){
+            return amountOfPlayers;
+        }
 	
 	public void removePlayer(User u) {
 		
@@ -206,6 +209,7 @@ public class Game {
 				
 				takeCard(u);
 				endTurn();
+                                ok = true;
 				
 			}
 			
@@ -229,7 +233,7 @@ public class Game {
 				
 				if(!deck.isEmpty())
 				cards.get(i).add(deck.removeFirst());
-				
+				//nog else nodig indien deck leeg is refill?
 			}
 			
 			i++;
@@ -327,9 +331,9 @@ public class Game {
 	//probleem!
 	//kan niet werken User.equals kijkt alleen naar het id v/d user
 	//is beter als users hun eigen id doorgeven.
-        public List<Card> getHand(String username){
+        public List<Card> getHand(User u){
             for (int i = 0; i<4;i++){
-                if (users.get(i).equals(username)){
+                if (users.get(i).equals(u)){
                     return cards.get(i);
                 }
             }

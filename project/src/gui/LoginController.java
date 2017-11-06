@@ -19,6 +19,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Dialog;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
@@ -76,7 +78,12 @@ public class LoginController implements Initializable {
             
         }
         else{
-            label.setText("incorrecte gegevens");
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("incorrect login information!");
+
+            alert.showAndWait();
         }
     
     }
@@ -87,9 +94,12 @@ public class LoginController implements Initializable {
             loginButtonAction(event);
         }
         else{
-            Dialog d = new Dialog();
-            d.setTitle("registration failed: Username already in use!");
-            d.show();
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("registration fialed");
+            alert.setContentText("username already in use!");
+
+            alert.showAndWait();
         }
     }
 

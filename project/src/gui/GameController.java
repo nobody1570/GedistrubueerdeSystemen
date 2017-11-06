@@ -36,6 +36,7 @@ public class GameController implements Initializable {
 
     //game info
     private static int gameID;
+    private static int userID;
     @FXML
     private Group hand = new Group() ;
     
@@ -43,6 +44,10 @@ public class GameController implements Initializable {
     private Stage stage;
     @FXML 
     private Label username;
+    
+    //id user in game
+    
+    
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -73,7 +78,7 @@ public class GameController implements Initializable {
         
         //get hand via comm
         
-        hand = (Group) impl.getHand(gameID,userName);
+        hand = (Group) impl.getHand(gameID,userID);
 /*
         hand.getChildren().clear() ;
 

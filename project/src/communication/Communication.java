@@ -27,9 +27,9 @@ public interface Communication extends Remote {
     
     String getSpelersList(int gameID) throws RemoteException;
 
-    public List<Card> getHand(int gameID, String userName) throws RemoteException;
+    public List<Card> getHand(int gameID, int userID) throws RemoteException;
 
-    public Card drawCard (String userName, int gameID) throws RemoteException;
+    public List<Card> drawCard (int gameID, int userID) throws RemoteException;
     public Card getLatestPlayedCard(String userName, int gameID, int latestReceivedMove) throws RemoteException;
     
     public void playCard(String userName, int gameID, Card card) throws RemoteException;
