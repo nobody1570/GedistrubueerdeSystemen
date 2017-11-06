@@ -46,7 +46,6 @@ public class Card extends Parent implements Serializable{
 		
 	}
 
-<<<<<<< HEAD
         public int getColourValue() {		   		
                 switch (c) {		
                      case RED: return 0; 		
@@ -57,27 +56,10 @@ public class Card extends Parent implements Serializable{
                      default: return -1;		
                 }		
         }
-=======
-   public int getColourValue() {
-	   
-	   
-	   switch (c) {
-		
-		case RED: return 0; 
-		case GREEN: return 1; 
-		case BLUE: return 2; 
-		case YELLOW: return 3; 
-		case ANY: return 4; 
-		default: return -1;
-	   }
-   }
->>>>>>> refs/remotes/origin/master
 	
 	public Colour getColour() {
 		return c;
 	}
-	
-	
 	public int getNumber() {
 		return number;
 	}
