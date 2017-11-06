@@ -1,23 +1,30 @@
 package model;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class Database {
 
 	private Connection con;
+	
+	//user
 	private PreparedStatement createUser;
 	private PreparedStatement updateUser;
 	private PreparedStatement deleteUser;
 	private PreparedStatement getUser;
 	private PreparedStatement getUserWithLogin;
-        private PreparedStatement getHighestUserID;
-        
+	private PreparedStatement getHighestUserID;
+	
+	//game
+	private PreparedStatement createGame;
+	private PreparedStatement createCard;
 
 	public Database() {
-            
+
 		try {
 			Class.forName("org.sqlite.JDBC");
 
@@ -25,6 +32,8 @@ public class Database {
 
 			if (con != null) {
 				// prepaperedstatements hieronder
+				
+				//user
 				// voor nieuwe users aan te maken
 				String insertInUser = "INSERT INTO User" + "(id, login, password) VALUES" + "(?,?,?)";
 				createUser = con.prepareStatement(insertInUser);
@@ -32,7 +41,7 @@ public class Database {
 				// read user
 				String getUserString = "SELECT id, login, salt_password, password, salt_token, token, timestamp FROM User WHERE id = ?";
 				getUser = con.prepareStatement(getUserString);
-				
+
 				String getUserLogin = "SELECT id, login, salt_password, password, salt_token, token, timestamp FROM User WHERE login = ?";
 				getUserWithLogin = con.prepareStatement(getUserLogin);
 
@@ -43,10 +52,24 @@ public class Database {
 				// delete user
 				String deleteUserString = "DELETE FROM User WHERE id = ?";
 				deleteUser = con.prepareStatement(deleteUserString);
+				
+				//get max id of users
+				String getHighestUserIDString = "SELECT MAX(id) FROM User";
+				getHighestUserID = con.prepareStatement(getHighestUserIDString);
+				
+				
+				
+				//game
+				//insert game
+				String insertGame = "INSERT INTO game" + "(game_id, player1, player2, player3, player4) VALUES" + "(?,?,?,?,?)";
+				createGame = con.prepareStatement(insertGame);
+				
+				//insert cards from game
+			//	String insertCard = "INSERT INTO cards" + "(game_id, user_id, card) VALUES" + "(?,?,?)";
+				//createCard = con.prepareStatement(insertCard);
+				
+				
 
-                                String getHighestUserIDString = "SELECT MAX(id) FROM User";
-                                getHighestUserID = con.prepareStatement(getHighestUserIDString);
-                                
 				System.out.println("ready");
 			}
 
@@ -92,18 +115,19 @@ public class Database {
 	}
 
 	public User readUser(String login) {
-		//SELECT id, login, salt_password, password, salt_token, token, timestamp FROM User WHERE login = ?
-		
+		// SELECT id, login, salt_password, password, salt_token, token, timestamp FROM
+		// User WHERE login = ?
+
 		System.out.println("reading user");
 		User result = null;
 		try {
 			getUserWithLogin.setString(1, login);
 			ResultSet rs = getUserWithLogin.executeQuery();
 
-			if(rs.next())
-			result = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-					rs.getString(6), rs.getLong(7));
-			
+			if (rs.next())
+				result = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
+						rs.getString(6), rs.getLong(7));
+
 			System.out.println("read user");
 
 		} catch (SQLException e) {
@@ -118,17 +142,17 @@ public class Database {
 
 		// SELECT id, login, salt_password, password, salt_token, token, timestamp FROM
 		// User WHERE id = ?
-		
+
 		System.out.println("reading user");
 		User result = null;
 		try {
 			getUser.setInt(1, i);
 			ResultSet rs = getUser.executeQuery();
 
-			if(rs.next())
-			result = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-					rs.getString(6), rs.getLong(7));
-			
+			if (rs.next())
+				result = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
+						rs.getString(6), rs.getLong(7));
+
 			System.out.println("read user");
 
 		} catch (SQLException e) {
@@ -161,26 +185,26 @@ public class Database {
 		}
 
 	}
-        
-        public int getHighestID(){
-            System.out.println("searching highest user id");
-            int maxID = -1;
-            try {
+
+	public int getHighestID() {
+		System.out.println("searching highest user id");
+		int maxID = -1;
+		try {
 
 			getHighestUserID.execute();
-                        ResultSet rs = getHighestUserID.getResultSet();
-			
-                        if (rs.next()){
-                            maxID = rs.getInt(0);
-                        }
-                                System.out.println("max id received");
+			ResultSet rs = getHighestUserID.getResultSet();
+
+			if (rs.next()) {
+				maxID = rs.getInt(0);
+			}
+			System.out.println("max id received");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-                }
-            return maxID;
-                
-        }
+		}
+		return maxID;
+
+	}
 
 	public void deleteUser(User u) {
 
@@ -205,7 +229,34 @@ public class Database {
 
 	}
 
-	public void saveGame() {
+	public void saveGame(Game g) {
+		
+		//"INSERT INTO game" + "(game_id, player1, player2, player3, player4) VALUES" + "(?,?,?,?,?)";
+		
+		System.out.println("saving game");
+		
+		List<User> players=g.getPlayers();
+		try {
+
+			//System.out.println(g);
+			createGame.setInt(1, g.getId());
+			createGame.setInt(2, players.get(0).getId());
+			createGame.setInt(3, players.get(1).getId());
+			createGame.setInt(4, players.get(2).getId());
+			createGame.setInt(5, players.get(3).getId());
+			
+			createGame.executeUpdate();
+			
+			
+			
+			
+			
+
+			System.out.println("game saved");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 

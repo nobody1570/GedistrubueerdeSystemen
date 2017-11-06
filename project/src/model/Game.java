@@ -85,9 +85,7 @@ public class Game {
 
 	}
 
-    public Game() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+  
 
 	private void shuffleCards() {
 		Collections.shuffle(deck);
@@ -350,6 +348,13 @@ public class Game {
 
     	public int getId() {
     		return id;
+    	}
+    	
+    	
+    	
+    	public List<User> getPlayers() {
+    		
+    		return users;
     	}
 
 		@Override
