@@ -85,7 +85,11 @@ public class Game {
 
 	}
 
+<<<<<<< HEAD
     
+=======
+  
+>>>>>>> refs/remotes/origin/master
 
 	public void shuffleCards() {
 		Collections.shuffle(deck);
@@ -114,6 +118,7 @@ public class Game {
 			}
 			
 			//TODO eventueel kaarten toevoegen
+<<<<<<< HEAD
 			if(started&&found) {
 					
 					int max=0;
@@ -125,6 +130,23 @@ public class Game {
 					//give that amount to new player
 					takeCards(u,max);
 				}
+=======
+			
+			if(started&&found) {
+				
+				int max=0;
+				//find max amount of cards
+				
+				for(int j=0;j<amountOfPlayers;j++) {
+					
+					if(cards.get(j).size()>max) {max=cards.get(j).size();}
+				}
+				
+				//give that amount to new player
+				takeCards(u,max);
+			}
+			
+>>>>>>> refs/remotes/origin/master
 		}
 		
 	}
@@ -157,13 +179,21 @@ public class Game {
 				}
 				i++;
 			}
+<<<<<<< HEAD
 			if(turn>amountOfPlayers-1) {
 					
 					turn++;
 					turn=turn%(amountOfPlayers+1);
 				}
+=======
 			
-			//TODO kaarten op deck smijten
+			if(turn>amountOfPlayers-1) {
+				
+				turn++;
+				turn=turn%(amountOfPlayers+1);
+			}
+>>>>>>> refs/remotes/origin/master
+			
 		}
 		
 	}
@@ -358,6 +388,21 @@ public class Game {
             return null;
         }
         
+        public void start() {
+        	if(amountOfPlayers>1)
+        	
+        	{
+        	started=true;
+        	for(int i=0;i<amountOfPlayers;i++) {
+        		
+        		
+        		takeCards(users.get(i),7);
+        		
+        	}
+        	
+        	}
+        }
+        
         public Boolean getStarted() {
     		return started;
     	}
@@ -369,6 +414,7 @@ public class Game {
     	public int getId() {
     		return id;
     	}
+<<<<<<< HEAD
         
         public int getTurn(){
             return turn;
@@ -432,11 +478,98 @@ public class Game {
                                 + amountOfPlayers + ",\n turn=" + turn + ",\n direction=" + direction + ",\n LastCard=" + LastCard
                                 + ",\n current=" + current + ",\n preferred=" + preferred + "]";
         }
+=======
+    	
+    	
+    	
+    	public List<User> getPlayers() {
+    		
+    		return users;
+    	}
+    	
+    	
+>>>>>>> refs/remotes/origin/master
 
     
 
-    	
-	
+
+
+		public int getTurn() {
+			// TODO Auto-generated method stub
+			return turn;
+		}
+
+		public void setTurn(int turn) {
+			
+			this.turn=turn;
+		}
+
+
+		public int getDirection() {
+			// TODO Auto-generated method stub
+			return direction;
+		}
+
+		public void setDirection(int direction) {
+			
+			this.direction=direction;
+		}
+
+
+		public int getLastColour() {
+			// TODO Auto-generated method stub
+			switch (current) {
+			
+			case RED: return 0; 
+			case GREEN: return 1; 
+			case BLUE: return 2; 
+			case YELLOW: return 3; 
+			case ANY: return 4; 
+			default: return -1;
+		   }
+			
+			
+		}
+
+		public void setLastColour(int lastColour) {
+			
+			
+			switch (lastColour) {
+			
+			case 0: current=Colour.RED; break;
+			case 1: current=Colour.GREEN; break;
+			case 2: current=Colour.BLUE; break;
+			case 3: current=Colour.YELLOW; break;
+			
+			}
+			
+		}
+
+		public int getLastNumber() {
+			// TODO Auto-generated method stub
+			return LastCard.getNumber();
+		}
+
+		
+		public void setLastNumber(int lastNumber) {
+			// TODO Auto-generated method stub
+			LastCard=new Card(-1,lastNumber);
+		}
+
+
+		//ONLY USE IN DATABASE-CLASS!!!!!!!!!!!!!!!
+		public void removeHandsFromStack() {
+			// TODO Auto-generated method stub
+			
+			for(int i=0;i<MAX_USERS;i++) {
+				
+				for(Card c:cards.get(i))
+				deck.remove(c);
+				
+				
+			}
+			
+		}
 	
 	
 	
