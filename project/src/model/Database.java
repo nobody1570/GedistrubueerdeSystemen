@@ -195,7 +195,7 @@ public class Database {
 			ResultSet rs = getHighestUserID.getResultSet();
 
 			if (rs.next()) {
-				maxID = rs.getInt(0);
+				maxID = rs.getInt(1);
 			}
 			System.out.println("max id received");
 		} catch (SQLException e) {
@@ -242,7 +242,12 @@ public class Database {
 			createGame.setInt(1, g.getId());
 			createGame.setInt(2, players.get(0).getId());
 			createGame.setInt(3, players.get(1).getId());
+			
+			
+			if(players.get(2)!=null)
 			createGame.setInt(4, players.get(2).getId());
+			
+			if(players.get(3)!=null)
 			createGame.setInt(5, players.get(3).getId());
 			
 			createGame.executeUpdate();

@@ -112,6 +112,20 @@ public class Game {
 			
 			//TODO eventueel kaarten toevoegen
 			
+			if(started&&found) {
+				
+				int max=0;
+				//find max amount of cards
+				
+				for(int j=0;j<amountOfPlayers;j++) {
+					
+					if(cards.get(j).size()>max) {max=cards.get(j).size();}
+				}
+				
+				//give that amount to new player
+				takeCards(u,max);
+			}
+			
 		}
 		
 	}
@@ -145,8 +159,12 @@ public class Game {
 				i++;
 			}
 			
+			if(turn>amountOfPlayers-1) {
+				
+				turn++;
+				turn=turn%(amountOfPlayers+1);
+			}
 			
-			//TODO kaarten op deck smijten
 		}
 		
 	}
@@ -336,6 +354,21 @@ public class Game {
                 }
             }
             return null;
+        }
+        
+        public void start() {
+        	if(amountOfPlayers>1)
+        	
+        	{
+        	started=true;
+        	for(int i=0;i<amountOfPlayers;i++) {
+        		
+        		
+        		takeCards(users.get(i),7);
+        		
+        	}
+        	
+        	}
         }
         
         public Boolean getStarted() {
