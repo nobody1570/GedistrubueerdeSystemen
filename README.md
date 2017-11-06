@@ -12,3 +12,10 @@ TODO:
     andere spelers moeten een waarschuwing krijgen zodat ze weten dat er iemand geleaved is
 - salt gebruiken voor ww op te slaan tegen wnr is dat?
 - indien vragen stuur me
+
+ extra:
+- aanpassen login errors
+- gebruik puntensysteem 
+- private game
+- afbeeldingen voor kaarten
+- verbetering listview (werkt niet volledig zoals het zou moeten)
