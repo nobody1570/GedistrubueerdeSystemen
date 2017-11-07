@@ -136,6 +136,14 @@ public class GameController implements Initializable {
     }
     @FXML
     public void returnToLobby(ActionEvent event) throws IOException{ 
+//pop-up om te vragen of ze zeker zijn.
+    	
+    	Alert alert = new Alert(AlertType.CONFIRMATION, "Leaving in the middle of a game will be counted as a loss.", ButtonType.YES, ButtonType.NO);
+    	alert.setTitle("Leave to lobby");
+    	alert.setHeaderText("Are you sure you want to leave to the lobby?");
+    	alert.showAndWait();
+
+    	if (alert.getResult() == ButtonType.YES) {
         
         Parent root = FXMLLoader.load(getClass().getResource("/gui/lobby.fxml"));
         Scene scene = new Scene(root);
@@ -143,6 +151,8 @@ public class GameController implements Initializable {
         window.setScene(scene);
 
         window.show();
+        }
+        
     }
     
     
