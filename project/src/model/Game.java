@@ -34,6 +34,7 @@ public class Game {
 	LinkedList<Card> deck;
 
 	Boolean started;
+	Boolean finished;
 	
 	int amountOfPlayers=0;
 	
@@ -81,6 +82,7 @@ public class Game {
 		}
 		
 		started=false;
+		finished=false;
 		int turn=0;
 
 	}
@@ -283,7 +285,10 @@ public class Game {
 			current=c.getColour();
 
 			performCardActions(c);
+			if(cards.get(turn).size()==0)finished=true;
 		}
+		
+		
 
 		return ok;
 
@@ -424,6 +429,11 @@ public class Game {
         
         public Colour getCurrent() {
             return current;
+        }
+        
+        public boolean finished() {
+        	
+        	return finished;
         }
         
         @Override
