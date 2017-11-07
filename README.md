@@ -2,12 +2,13 @@
 
 TODO:
 
-- einde spel als iemand geen kaarten meer heeft --> heb boolean finished toegevoegd aan Game--> als iemand geen kaarten meer heeft--> finished()=true (getter erbij geschreven)
-  dan popup venster met score van iedereen en automatisch terug naar lobby (wil ik wel doen)
+//werkt//- einde spel als iemand geen kaarten meer heeft --> heb boolean finished toegevoegd aan Game--> als iemand geen kaarten meer //heeft--> finished()=true (getter erbij geschreven)
+//  dan popup venster met score van iedereen en automatisch terug naar lobby (wil ik wel doen)
+  
 - in gamecontroller extra task toevoegen analoog aan de andere in methode play
     de run methode van updategamethread moet uitgevoerd worden
 
-//geïmplementeerd
+//geÃ¯mplementeerd
 //- controleren als een kaart kan afgelegd worden clientside (in playcard)
 //    indien foute kaart geef popupvenster met warning
 
