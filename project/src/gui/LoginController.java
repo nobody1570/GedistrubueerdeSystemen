@@ -21,6 +21,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
@@ -73,7 +74,18 @@ public class LoginController implements Initializable {
             Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
             window.setScene(scene);
             controller.redirectLobby(userID,impl,myRegistry, username.getText());
+            
+            window.setOnCloseRequest(evt -> {
+                // prevent window from closing
+                evt.consume();
+
+                // execute own shutdown procedure
+                shutdown(window);
+            });
+
             window.show();
+            
+            
             
             
         }
@@ -84,9 +96,24 @@ public class LoginController implements Initializable {
             alert.setContentText("incorrect login information!");
 
             alert.showAndWait();
+         
         }
     
     }
+    
+    
+    private void shutdown(Stage mainWindow) {
+        // you could also use your logout window / whatever here instead
+        Alert alert = new Alert(Alert.AlertType.NONE, "", ButtonType.YES, ButtonType.NO);
+        alert.setTitle("Closing UNO");
+        alert.setHeaderText("Do you really wish to close the program?");
+        alert.setContentText("Progress might be lost. Unfinished games will be counted as a loss.");
+        if (alert.showAndWait().orElse(ButtonType.NO) == ButtonType.YES) {
+            // you may need to close other windows or replace this with Platform.exit();
+            mainWindow.close();
+        }
+    }
+    
     
     @FXML
     private void registerButtonAction(ActionEvent event) throws IOException{
