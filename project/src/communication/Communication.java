@@ -43,7 +43,10 @@ public interface Communication extends Remote {
     public Card getLatestPlayedCard(int userID, int gameID, int latestReceivedMove) throws RemoteException;
     public Card getLatestPlayedCard(int gameID) throws RemoteException;
     public boolean myTurn(int gameID, int userID) throws RemoteException;
+    public boolean waitForNewCardPlayed(int gameID) throws RemoteException;
     
+    public void endGame(int gameID, int userID) throws RemoteException;
+    public boolean getFinished(int gameID) throws RemoteException;
     public Map<User, Integer> getScore(int gameID)throws RemoteException;
     
     public boolean logout(int userID) throws RemoteException;

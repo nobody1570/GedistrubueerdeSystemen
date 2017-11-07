@@ -34,6 +34,7 @@ public class Controller implements Initializable{
     private static Registry myRegistry;
     private static int userID;
     private static String username;
+    private static int gameID;
     
     private GameController gameController;
     @FXML
@@ -43,7 +44,7 @@ public class Controller implements Initializable{
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {   
-        
+        gameID = -1;
     }
 
     public void setStage(Stage stage){
@@ -57,7 +58,7 @@ public class Controller implements Initializable{
                 
                     
         //searchGame();
-        int gameID = impl.getPublicGame(userID);
+        gameID = impl.getPublicGame(userID);
         System.out.println("gameID: "+gameID);        
         gameController = new GameController();
         gameController.redirectGame(gameID,userID,impl,myRegistry,username);
@@ -75,6 +76,10 @@ public class Controller implements Initializable{
         
     }
 
+    public int getGameID(){
+        return gameID;
+    }
+    
     void redirectLobby(int userID, Communication impl, Registry myRegistry, String username) {
         
         this.userID = userID;

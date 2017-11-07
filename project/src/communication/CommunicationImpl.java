@@ -76,7 +76,7 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         Game game;
         for (int i=0; i<games.size();i++){
             game = games.get(i);
-            if (game.getAmountOfPlayers()<game.MAX_USERS && !game.getStarted()){
+            if (game.getAmountOfPlayers()<game.MAX_USERS && !game.getStarted() && !game.getFinished()){
                 //plaats gevonden add player
 
                 game.addPlayer(u);
@@ -105,11 +105,11 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         //disable token
         User u = getUserByID(userID);
         
-            if (userList.contains(u)){
-                    userList.remove(u);
-                    return true;
-            }
-            return false;
+        if (userList.contains(u)){
+                userList.remove(u);
+                return true;
+        }
+        return false;
     }
 
     @Override
@@ -285,6 +285,34 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 		return g.playCardAllowed(c);
 	}
 
+    @Override
+    public synchronized boolean getFinished(int gameID) throws RemoteException {
+        Game g = getGameByID(gameID);
+        
+        return g.getFinished();
+    }
+
+    @Override
+    public synchronized boolean waitForNewCardPlayed(int gameID) throws RemoteException {
+        Game g = getGameByID(gameID);
+        try {
+            wait();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CommunicationImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if(g.getFinished()){
+            return false;
+        }
+        return true;
+    }
+    
+    @Override
+    public synchronized void endGame(int gameID, int userID) throws RemoteException {
+        Game g = getGameByID(gameID);
+        User u = getUserByID(userID);
+        g.removePlayer(u);
+        notifyAll();
+    }
     
     
 

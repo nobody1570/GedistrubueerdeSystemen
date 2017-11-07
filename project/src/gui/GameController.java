@@ -9,6 +9,7 @@ import communication.Communication;
 import communication.CommunicationImpl;
 import communication.UpdateGameThread;
 import java.io.IOException;
+import static java.lang.Thread.sleep;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
@@ -136,22 +137,35 @@ public class GameController implements Initializable {
     }
     @FXML
     public void returnToLobby(ActionEvent event) throws IOException{ 
-//pop-up om te vragen of ze zeker zijn.
-    	
-    	Alert alert = new Alert(AlertType.CONFIRMATION, "Leaving in the middle of a game will be counted as a loss.", ButtonType.YES, ButtonType.NO);
-    	alert.setTitle("Leave to lobby");
-    	alert.setHeaderText("Are you sure you want to leave to the lobby?");
-    	alert.showAndWait();
+        //pop-up om te vragen of ze zeker zijn.
+    	if(!impl.getFinished(gameID)){
+            Alert alert = new Alert(AlertType.CONFIRMATION, "Leaving in the middle of a game will be counted as a loss.", ButtonType.YES, ButtonType.NO);
+            alert.setTitle("Leave to lobby");
+            alert.setHeaderText("Are you sure you want to leave to the lobby?");
+            alert.showAndWait();
 
-    	if (alert.getResult() == ButtonType.YES) {
-        
-        Parent root = FXMLLoader.load(getClass().getResource("/gui/lobby.fxml"));
-        Scene scene = new Scene(root);
-        Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
-        window.setScene(scene);
+            if (alert.getResult() == ButtonType.YES) {
 
-        window.show();
+                Parent root = FXMLLoader.load(getClass().getResource("/gui/lobby.fxml"));
+                Scene scene = new Scene(root);
+                Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
+                window.setScene(scene);
+
+                window.show();
+            }
         }
+        else{
+            Parent root = FXMLLoader.load(getClass().getResource("/gui/lobby.fxml"));
+            Scene scene = new Scene(root);
+            Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
+            window.setScene(scene);
+
+            window.show();
+        
+        }
+    	
+        
+        
         
     }
     
@@ -170,6 +184,40 @@ public class GameController implements Initializable {
             play();
             load.setDisable(true);
             
+            Task updateTask;
+            updateTask = new Task<Void>() {
+                @Override public synchronized Void call() throws RemoteException, InterruptedException, IOException {
+                    try {
+                        Card c, previous=null;boolean finished=false;
+                        while (!finished) {
+                            System.out.println("runloop");
+                            if(impl.waitForNewCardPlayed(gameID)){
+                                c = impl.getLatestPlayedCard(gameID);
+
+                                if(!c.equals(previous)){
+                                    previous = c;                              
+                                    Platform.runLater(() -> {
+                                            try {
+                                                update();  
+                                            } catch (RemoteException ex) {
+                                                Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+                                            }
+                                    });
+                                }
+                            }
+                            else{
+                                finished = true;
+                            }
+                            
+                        }
+                    } catch (Exception e) {
+                    e.printStackTrace();
+                    }               
+                    return null;
+                }
+            };
+
+            new Thread(updateTask).start();
         }
         else{
             Alert alert = new Alert(Alert.AlertType.ERROR);
