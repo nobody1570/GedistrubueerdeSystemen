@@ -148,6 +148,23 @@ public class Game {
 	
 	public void removePlayer(User u) {
 		
+		if(!finished) {
+		finished=true;
+		score.put(u, 500);
+		
+		for(int i=0;i<amountOfPlayers;i++) {
+			
+			if(!users.get(i).equals(u)) {
+				
+				score.put(users.get(i), 0);
+				
+			}
+			
+			
+		}
+		
+		}
+		
 		if (users.contains(u)) {
 			boolean found =false;
 			int i=0;
@@ -242,7 +259,7 @@ public class Game {
                                 //beurt gespeeld controleren als alle spelers nog kaarten hebben
                                 for(List<Card> hand:cards){
                                     //1 speler geen kaarten => game gedaan
-                                    if (hand.isEmpty()){
+                                    if (hand.isEmpty()&&!finished){
                                         finished = true;
                                         berekenScore();
                                     }
@@ -391,7 +408,7 @@ public class Game {
 	//kan niet werken User.equals kijkt alleen naar het id v/d user
 	//is beter als users hun eigen id doorgeven.
         public List<Card> getHand(User u){
-            for (int i = 0; i<4;i++){
+            for (int i = 0; i<MAX_USERS;i++){
                 if (users.get(i).equals(u)){
                     return cards.get(i);
                 }
