@@ -1,4 +1,4 @@
-# GedistrubueerdeSystemen
+﻿# GedistrubueerdeSystemen
 
 TODO:
 
@@ -12,9 +12,11 @@ TODO:
 //- controleren als een kaart kan afgelegd worden clientside (in playcard)
 //    indien foute kaart geef popupvenster met warning
 
+//geïmplementeerd
+//- bij afsluiten of verlaten game moet er een popupvenster komen met zeker? "spel opslaan/gaat verloren" 
+//spel kan enkel bij een private game worden opgeslaan! Private games zijn nog niet geïmplementeerd.
 
-- bij afsluiten of verlaten game moet er een popupvenster komen met zeker? "spel opslaan/gaat verloren"
-    andere spelers moeten een waarschuwing krijgen zodat ze weten dat er iemand geleaved is
+  - andere spelers moeten een waarschuwing krijgen zodat ze weten dat er iemand geleaved is
 - salt gebruiken voor ww op te slaan tegen wnr is dat?
 - indien vragen stuur me
 
