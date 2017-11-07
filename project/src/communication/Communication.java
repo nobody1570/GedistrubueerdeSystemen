@@ -12,6 +12,7 @@ package communication;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Map;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import model.Card;
@@ -33,6 +34,8 @@ public interface Communication extends Remote {
 
     public List<Card> drawCard (int gameID, int userID) throws RemoteException;
     public boolean playCard(int userID, int gameID, Card card) throws RemoteException;
+    public boolean playCardAllowed(int gameID, Card c)throws RemoteException;
+    
     public void setPrefered(int gameID, int userID, Colour c)throws RemoteException;
     public Colour getCurrentColour(int gameID) throws RemoteException;
     
@@ -41,10 +44,11 @@ public interface Communication extends Remote {
     public Card getLatestPlayedCard(int gameID) throws RemoteException;
     public boolean myTurn(int gameID, int userID) throws RemoteException;
     
-    
+    public Map<User, Integer> getScore(int gameID)throws RemoteException;
     
     public boolean logout(int userID) throws RemoteException;
-	public boolean playCardAllowed(int gameID, Card c)throws RemoteException;
+
+    
 
     
 

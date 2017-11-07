@@ -239,8 +239,10 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         System.out.println("myturn serverside");
         User u = getUserByID(userID);
         Game g = getGameByID(gameID);
-        
-        while(!u.equals(g.getPlayers().get(g.getTurn()))){
+        boolean yourTurn = true;
+        //zoland je niet aan de beurt bent en het spel nog niet gedaan is
+        while(!u.equals(g.getPlayers().get(g.getTurn())) && !g.getFinished()){
+            
             System.out.println("speler: "+ u + "wacht op beurt: "+g.getTurn());
             try {
                 wait();
@@ -248,8 +250,13 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
                 Logger.getLogger(CommunicationImpl.class.getName()).log(Level.SEVERE, null, ex);
             }
             System.out.println("gedaan met wachten myturn: "+u+ "turn is nu: "+g.getTurn());
+            
         }
-        return true;
+        if(g.getFinished()){
+                System.out.println("game gedaan");
+                yourTurn = false;
+            }
+        return yourTurn;
     }
 
     @Override
@@ -263,7 +270,13 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-	@Override
+    @Override
+    public Map<User, Integer> getScore(int gameID)throws RemoteException {
+        Game g = getGameByID(gameID);
+        return g.getScore();
+    }
+    
+    @Override
 	public boolean playCardAllowed(int gameID, Card c) throws RemoteException {
 		// TODO Auto-generated method stub
 		
@@ -272,6 +285,7 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 		return g.playCardAllowed(c);
 	}
 
+    
     
 
    

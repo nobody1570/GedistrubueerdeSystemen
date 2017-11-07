@@ -12,12 +12,11 @@
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
-                  <Button layoutX="38.0" layoutY="360.0" mnemonicParsing="false" onAction="#returnToLobby" text="Return" />
-                  <Button fx:id="load" layoutX="38.0" layoutY="313.0" mnemonicParsing="false" onAction="#loadGame" text="Load" />
                   <Label fx:id="usernameLabel" layoutX="47.0" layoutY="265.0" text="username" />
                   <HBox layoutX="-5.0" layoutY="-4.0" prefHeight="220.0" prefWidth="186.0">
                      <children>
                         <ListView fx:id="userView" editable="true" prefHeight="240.0" prefWidth="93.0" />
+                        <ListView fx:id="handsizeView" editable="true" prefHeight="220.0" prefWidth="93.0" />
                      </children>
                   </HBox>
                </children>
@@ -28,7 +27,8 @@
                   <ListView fx:id="handView" editable="true" layoutY="197.0" orientation="HORIZONTAL" prefHeight="240.0" prefWidth="424.0" />
                   <Button fx:id="playCard" disable="true" layoutX="316.0" layoutY="144.0" mnemonicParsing="false" onAction="#playCard" text="PlayCard" />
                   <Label fx:id="lastCard" layoutX="106.0" layoutY="87.0" text="Label" />
-                  <ListView fx:id="handsizeView" editable="true" layoutX="-100.0" layoutY="-6.0" prefHeight="220.0" prefWidth="93.0" />
+                  <Button fx:id="load" layoutX="32.0" layoutY="144.0" mnemonicParsing="false" onAction="#loadGame" text="LoadGame" />
+                  <Button fx:id="returnToLobby" layoutX="150.0" layoutY="144.0" mnemonicParsing="false" onAction="#returnToLobby" text="ReturnToLobby" />
                </children>
             </AnchorPane>
         </items>

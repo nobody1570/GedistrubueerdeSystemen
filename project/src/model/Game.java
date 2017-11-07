@@ -8,9 +8,11 @@ package model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
@@ -31,10 +33,13 @@ public class Game {
 	//cards of user
 	List<ArrayList<Card>> cards=new ArrayList<ArrayList<Card>>(MAX_USERS);
 
+        //score
+        Map<User,Integer> score = new HashMap<>();
+        
 	LinkedList<Card> deck;
 
 	Boolean started;
-	Boolean finished;
+        private Boolean finished;
 	
 	int amountOfPlayers=0;
 	
@@ -46,7 +51,7 @@ public class Game {
 	Colour preferred;
 
 	public Game(int id) {
-
+                finished = false;
 		this.id=id;
 		deck = new LinkedList<Card>();
 		//alle kaarten toevoegen
@@ -82,7 +87,6 @@ public class Game {
 		}
 		
 		started=false;
-		finished=false;
 		int turn=0;
 
 	}
@@ -201,7 +205,7 @@ public class Game {
                 started=true;
                 for(int i=0;i<amountOfPlayers;i++) {
 
-                    takeCards(users.get(i),7);
+                    takeCards(users.get(i),3);
                 }
                 Card c;
                 do{
@@ -220,10 +224,8 @@ public class Game {
 	}
 	
 	
-	public void SetPreferredColour(User u,Colour c) {
-		
-		if(u.equals(users.get(turn)))preferred=c;
-		
+	public void SetPreferredColour(User u,Colour c) {		
+		if(u.equals(users.get(turn)))preferred=c;		
 	}
 	//
 	//null-->kaart nemen. c-->kaart afleggen
@@ -235,7 +237,17 @@ public class Game {
 			
 			if(c!=null) {
                             ok=playCard(u,c);
-                            if(ok)endTurn();
+                            if(ok){
+                                endTurn();
+                                //beurt gespeeld controleren als alle spelers nog kaarten hebben
+                                for(List<Card> hand:cards){
+                                    //1 speler geen kaarten => game gedaan
+                                    if (hand.isEmpty()){
+                                        finished = true;
+                                        berekenScore();
+                                    }
+                                }
+                            }
 				
 			}
 			
@@ -244,7 +256,9 @@ public class Game {
                             endTurn();
                             ok = true;				
 			}			
-		}		
+		}
+                
+                
 		return ok;
 	}
 	
@@ -285,10 +299,7 @@ public class Game {
 			current=c.getColour();
 
 			performCardActions(c);
-			if(cards.get(turn).size()==0)finished=true;
 		}
-		
-		
 
 		return ok;
 
@@ -332,6 +343,31 @@ public class Game {
             return users;
         }
 	
+        //score berekennen na einde spel 
+        //enkel oproepen na game finished van in game 
+        private void berekenScore(){
+            int scoreSpeler;
+            for(int i = 0; i<users.size();i++){
+                scoreSpeler = 0;
+                for (Card c:cards.get(i)){
+                    if(c.getNumber()<10){
+                        scoreSpeler = scoreSpeler + c.getNumber();
+                    }
+                    else{
+                        //speciale kaarten 20punten
+                        if(c.getNumber()<13){
+                            scoreSpeler = scoreSpeler + 20;
+                        }
+                        else {
+                            //kleurveranderen
+                            scoreSpeler = scoreSpeler + 50;
+                        }
+                    }
+                }
+                score.put(users.get(i), scoreSpeler);
+            }
+        }
+        
 	//gebruikt in performCardActions
         private void takeCards(User u,int a) {
                 boolean found=false;
@@ -430,10 +466,11 @@ public class Game {
         public Colour getCurrent() {
             return current;
         }
-        
-        public boolean finished() {
-        	
-        	return finished;
+        public Boolean getFinished(){
+            return finished;
+        }
+        public Map<User,Integer> getScore(){
+            return score;
         }
         
         @Override

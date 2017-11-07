@@ -7,13 +7,15 @@ package gui;
 
 import communication.Communication;
 import communication.CommunicationImpl;
-//import communication.UpdateGameThread;
+import communication.UpdateGameThread;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -33,6 +35,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -44,7 +47,6 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import model.Card;
 import model.Card.Colour;
-import model.Game;
 import model.User;
 
 /**
@@ -61,7 +63,7 @@ public class GameController implements Initializable {
     //game info
     private static int gameID;
     private static int userID;
-    
+    private boolean gameFinished;
     
     private ObservableList<Card> hand = FXCollections.observableArrayList();
     private ObservableList<User> players = FXCollections.observableArrayList();
@@ -75,6 +77,7 @@ public class GameController implements Initializable {
     @FXML public Label lastCard;
     @FXML public Button draw;
     @FXML public Button playCard;
+    @FXML public Button returnToLobby;
     @FXML Button load;
     @FXML
     private Stage stage;
@@ -88,6 +91,8 @@ public class GameController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
+        
+        gameFinished = false;
         //handView.setItems(hand);
         handView.setItems(hand);
         handView.setCellFactory((ListView<Card> p) -> {
@@ -149,10 +154,12 @@ public class GameController implements Initializable {
             load.setVisible(false);
             draw.setVisible(false);
             playCard.setVisible(false);
+            returnToLobby.setVisible(false);
             update();
             System.out.println("updated");
             play();
             load.setDisable(true);
+            
         }
         else{
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -236,59 +243,55 @@ public class GameController implements Initializable {
             .getSelectedItem();
         
         if (c != null) {
-            //TODO kaart controleren clientside
-        	
-        	Boolean ok=impl.playCardAllowed(gameID,c);
-        	
-        	//javafx pop-up
-        	
-        	Alert alert = new Alert(AlertType.INFORMATION);
-        	alert.setTitle("Invalid move");
-        	alert.setHeaderText("Playing this card is not a valid move.");
-        	alert.setContentText("Please play another card, this card does not have the correct colour or value to be played right now. If you can play no cards, draw a card to end your turn.");
+            boolean playable =impl.playCardAllowed(gameID,c);
 
-        	alert.showAndWait();
-        	
-        	if(ok) {
-    
-        	
-            if (c.getNumber()>=13){
-                //kleur vragen aan gebruiker
-                List<Colour> choices = new ArrayList<>();
-                choices.add(Colour.BLUE);
-                choices.add(Colour.RED);
-                choices.add(Colour.GREEN);
-                choices.add(Colour.YELLOW);
+            if(playable) {
+                //TODO kaart controleren clientside
+                if (c.getNumber()>=13){
+                    //kleur vragen aan gebruiker
+                    List<Colour> choices = new ArrayList<>();
+                    choices.add(Colour.BLUE);
+                    choices.add(Colour.RED);
+                    choices.add(Colour.GREEN);
+                    choices.add(Colour.YELLOW);
 
-                ChoiceDialog<Colour> dialog;
-                dialog = new ChoiceDialog<>(Colour.BLUE, choices);
-                dialog.setTitle("choose a colour");
-                dialog.setHeaderText("What colour do you prefer?");
-                dialog.setContentText("Colour:");
-                Optional<Colour> result = dialog.showAndWait();
-                result.ifPresent(
-                    letter -> {
-                        try {
-                            impl.setPrefered(gameID, userID, letter);
-                        } catch (RemoteException ex) {
-                            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }         
-                );
-                
-                
+                    ChoiceDialog<Colour> dialog;
+                    dialog = new ChoiceDialog<>(Colour.BLUE, choices);
+                    dialog.setTitle("choose a colour");
+                    dialog.setHeaderText("What colour do you prefer?");
+                    dialog.setContentText("Colour:");
+                    Optional<Colour> result = dialog.showAndWait();
+                    result.ifPresent(
+                        letter -> {
+                            try {
+                                impl.setPrefered(gameID, userID, letter);
+                            } catch (RemoteException ex) {
+                                Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }         
+                    );
+
+
+                }
+
+
+                //controleer if playable
+                hand.remove(c);
+
+                impl.playCard(userID, gameID, c);
+            }else{
+                //not playable
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Invalid move");
+                alert.setHeaderText("Playing this card is not a valid move.");
+                alert.setContentText("Please play another card, this card does not have the correct colour or value to be played right now. If you can play no cards, draw a card to end your turn.");
+
+                alert.showAndWait();
             }
-            
-            
-            //controleer if playable
-            hand.remove(c);
-            
-            impl.playCard(userID, gameID, c);
         }
         draw.setVisible(false);
         playCard.setVisible(false);
         play();
-        }
          
     }
     
@@ -314,11 +317,13 @@ public class GameController implements Initializable {
         //TODO nieuwe task maken om regelmatig laatste kaart up te daten    
         
             
-        Task task = new Task<Void>() {
-            @Override public synchronized Void call() throws RemoteException, InterruptedException {
+        Task task;
+        task = new Task<Void>() {
+            @Override public synchronized Void call() throws RemoteException, InterruptedException, IOException {
                 
                 if (impl.getStarted(gameID)){
                     if(impl.myTurn(gameID,userID)){
+                        //myturn to play
                         Platform.runLater(() -> {
                             try {
                                 System.out.println("my turn");
@@ -331,7 +336,20 @@ public class GameController implements Initializable {
                             } catch (RemoteException ex) {
                                 Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
                             }
-                        });
+                        });                       
+                    }
+                    else{
+                        //einde game popup venster wordt aangemaakt
+                        Platform.runLater(() -> {
+                            try {
+                                System.out.println("einde game er wordt om scores gevraagd");
+                                gameFinished = true;
+                                endGame();
+                            } catch (RemoteException ex) {
+                                Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        });  
+                        
                         
                     }
 
@@ -341,8 +359,28 @@ public class GameController implements Initializable {
         };
 
         new Thread(task).start();
-
         
+    }
+    public void endGame() throws RemoteException{
+        //game is gedaan
+        System.out.println("in endgame");
+            Map<User,Integer> score = impl.getScore(gameID);
+            String result = new String();
+            for (Map.Entry<User,Integer> e:score.entrySet()){
+                result = result.concat(e.getKey().getLogin() + ": "+ e.getValue()+'\n');
+            }
+            System.out.println(result);
+            
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Game had ended!");
+                alert.setHeaderText("The results:");
+                alert.setContentText(result);
+                alert.showAndWait();
+                
+            returnToLobby.setVisible(true);
+            
+                
+            
     }
     
     public void redirectGame(int gameID, int userID, Communication impl, Registry myRegistry, String username) {
