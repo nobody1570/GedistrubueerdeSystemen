@@ -33,6 +33,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -131,6 +132,15 @@ public class GameController implements Initializable {
     }
     @FXML
     public void returnToLobby(ActionEvent event) throws IOException{ 
+    	
+    	//pop-up om te vragen of ze zeker zijn.
+    	
+    	Alert alert = new Alert(AlertType.CONFIRMATION, "Leaving in the middle of a game will be counted as a loss.", ButtonType.YES, ButtonType.NO);
+    	alert.setTitle("Leave to lobby");
+    	alert.setHeaderText("Are you sure you want to leave to the lobby?");
+    	alert.showAndWait();
+
+    	if (alert.getResult() == ButtonType.YES) {
         
         Parent root = FXMLLoader.load(getClass().getResource("/gui/lobby.fxml"));
         Scene scene = new Scene(root);
@@ -138,6 +148,7 @@ public class GameController implements Initializable {
         window.setScene(scene);
 
         window.show();
+        }
     }
     
     
@@ -241,7 +252,7 @@ public class GameController implements Initializable {
         	Boolean ok=impl.playCardAllowed(gameID,c);
         	
         	//javafx pop-up
-        	
+        	if(!ok) {
         	Alert alert = new Alert(AlertType.INFORMATION);
         	alert.setTitle("Invalid move");
         	alert.setHeaderText("Playing this card is not a valid move.");
@@ -249,7 +260,7 @@ public class GameController implements Initializable {
 
         	alert.showAndWait();
         	
-        	if(ok) {
+        	}else {
     
         	
             if (c.getNumber()>=13){
@@ -284,11 +295,13 @@ public class GameController implements Initializable {
             hand.remove(c);
             
             impl.playCard(userID, gameID, c);
-        }
+       
         draw.setVisible(false);
         playCard.setVisible(false);
         play();
+         }
         }
+    
          
     }
     
