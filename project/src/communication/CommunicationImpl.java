@@ -263,6 +263,15 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+	@Override
+	public boolean playCardAllowed(int gameID, Card c) throws RemoteException {
+		// TODO Auto-generated method stub
+		
+		Game g=getGameByID(gameID);
+		
+		return g.playCardAllowed(c);
+	}
+
     
 
    

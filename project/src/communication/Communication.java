@@ -44,6 +44,7 @@ public interface Communication extends Remote {
     
     
     public boolean logout(int userID) throws RemoteException;
+	public boolean playCardAllowed(int gameID, Card c)throws RemoteException;
 
     
 

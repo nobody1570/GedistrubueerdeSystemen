@@ -7,7 +7,7 @@ package gui;
 
 import communication.Communication;
 import communication.CommunicationImpl;
-import communication.UpdateGameThread;
+//import communication.UpdateGameThread;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -237,6 +237,21 @@ public class GameController implements Initializable {
         
         if (c != null) {
             //TODO kaart controleren clientside
+        	
+        	Boolean ok=impl.playCardAllowed(gameID,c);
+        	
+        	//javafx pop-up
+        	
+        	Alert alert = new Alert(AlertType.INFORMATION);
+        	alert.setTitle("Invalid move");
+        	alert.setHeaderText("Playing this card is not a valid move.");
+        	alert.setContentText("Please play another card, this card does not have the correct colour or value to be played right now. If you can play no cards, draw a card to end your turn.");
+
+        	alert.showAndWait();
+        	
+        	if(ok) {
+    
+        	
             if (c.getNumber()>=13){
                 //kleur vragen aan gebruiker
                 List<Colour> choices = new ArrayList<>();
@@ -273,6 +288,7 @@ public class GameController implements Initializable {
         draw.setVisible(false);
         playCard.setVisible(false);
         play();
+        }
          
     }
     
