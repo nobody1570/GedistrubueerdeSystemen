@@ -1,5 +1,7 @@
 package model;
 
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -9,7 +11,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Database {
+import communication.DatabaseCommunication;
+
+public class Database extends UnicastRemoteObject implements DatabaseCommunication{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private Connection con;
 
@@ -27,7 +36,7 @@ public class Database {
 	private PreparedStatement createCard;
 	private PreparedStatement readCard;
 
-	public Database() {
+	public Database() throws RemoteException{
 
 		try {
 			Class.forName("org.sqlite.JDBC");
