@@ -12,7 +12,9 @@ public class MainDatabase {
 
 	 private void startServer() {
 	        try {
-	                // create on port 1500
+	        	
+	        	
+	                // create on port 1500!
 	                Registry registry = LocateRegistry.createRegistry(1500);
 	                // create a new service named CounterService
 	                registry.rebind("DatabaseService", new Database());

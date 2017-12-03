@@ -27,13 +27,16 @@ import model.Game;
 import model.User;
 
 public class CommunicationImpl extends UnicastRemoteObject implements Communication{
-    private Database db;
+ 
+	// private Database db;
+    
+    private DatabaseCommunication db;
     private List<Game> games;
     private Set<User> userList;
 
 
-    public CommunicationImpl () throws RemoteException{
-        db = new Database();
+    public CommunicationImpl (DatabaseCommunication dBImpl) throws RemoteException{
+        db = dBImpl;
         games = new ArrayList<Game>();
         userList = new HashSet<User>();
 
@@ -230,8 +233,18 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
             }
             
         }
-        User u =db.readUser(userID);
+        User u;
+		try {
+			u = db.readUser(userID);
+		
         return u;
+        } catch (RemoteException e) {
+			// TODO Auto-generated catch block
+        	
+			e.printStackTrace();
+			return null;
+		}
+		
     }
 
     @Override
