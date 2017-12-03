@@ -10,7 +10,7 @@ public class MainDatabase {
 	
 	
 
-	 private void startServer() {
+	 private void startDatabase() {
 	        try {
 	        	
 	        	
@@ -28,7 +28,7 @@ public class MainDatabase {
 	    public static void main(String[] args) {
 
 	        MainDatabase mainDB = new MainDatabase();
-	        mainDB.startServer();
+	        mainDB.startDatabase();
 	    }
 	
 	

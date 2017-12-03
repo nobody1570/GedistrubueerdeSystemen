@@ -13,6 +13,8 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+
+import CommunicationControllers.InterfaceSController;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -33,6 +35,7 @@ public class MainClient extends Application {
     private Stage primaryStage;
     private static Communication impl;
     private static Registry myRegistry;
+    private static Registry controlRegistry;
     private static final String localhost = "192.168.0.150";
     //private static final String localhost = "192.168.56.1";
     
@@ -72,7 +75,17 @@ public class MainClient extends Application {
         // fire to localhost port 1099
         
         try {
-            myRegistry = LocateRegistry.getRegistry(localhost, 1099);
+        	
+        	controlRegistry = LocateRegistry.getRegistry(localhost, 3000);
+        	
+        	InterfaceSController isc = (InterfaceSController) controlRegistry.lookup("C_S_Com_Controller");
+        	
+        	int port=isc.getServerPort();
+        	
+        	
+        	
+        	
+            myRegistry = LocateRegistry.getRegistry(localhost, port);
 
 
             // search for CounterService
