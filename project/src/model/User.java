@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 public class User implements Serializable{
 
 	int id;
+	int score;
 	String login;
 	String salt_password;
 	String password;
@@ -22,7 +23,7 @@ public class User implements Serializable{
 	
 	
 	public User(int id, String login, String salt_password, String password, String salt_token, String token,
-			Long i) {
+			Long i, int score) {
 		super();
 		this.id = id;
 		this.login = login;
@@ -31,6 +32,7 @@ public class User implements Serializable{
 		this.salt_token = salt_token;
 		this.token = token;
 		this.timestamp = i;
+		this.score=score;
 	}
 
 	//time= time in milliseconds
@@ -114,6 +116,21 @@ public class User implements Serializable{
 		if (id != other.id)
 			return false;
 		return true;
+	}
+
+	
+	/**
+	 * @return the score
+	 */
+	public int getScore() {
+		return score;
+	}
+
+	/**
+	 * @param score the score to set
+	 */
+	public void setScore(int score) {
+		this.score = score;
 	}
 
 	@Override

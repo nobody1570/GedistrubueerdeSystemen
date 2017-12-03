@@ -52,14 +52,14 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 				createUser = con.prepareStatement(insertInUser);
 
 				// read user
-				String getUserString = "SELECT id, login, salt_password, password, salt_token, token, timestamp FROM User WHERE id = ?";
+				String getUserString = "SELECT id, login, salt_password, password, salt_token, token, timestamp, score FROM User WHERE id = ?";
 				getUser = con.prepareStatement(getUserString);
 
-				String getUserLogin = "SELECT id, login, salt_password, password, salt_token, token, timestamp FROM User WHERE login = ?";
+				String getUserLogin = "SELECT id, login, salt_password, password, salt_token, token, timestamp, score FROM User WHERE login = ?";
 				getUserWithLogin = con.prepareStatement(getUserLogin);
 
 				// update user
-				String updateUserString = "UPDATE User SET salt_password = ?, password = ?, salt_token = ?, token = ?, timestamp = ? WHERE id = ?";
+				String updateUserString = "UPDATE User SET salt_password = ?, password = ?, salt_token = ?, token = ?, timestamp = ?, score = ? WHERE id = ?";
 				updateUser = con.prepareStatement(updateUserString);
 
 				// delete user
@@ -149,7 +149,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 			if (rs.next())
 				result = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-						rs.getString(6), rs.getLong(7));
+						rs.getString(6), rs.getLong(7),rs.getInt(8));
 
 			System.out.println("read user");
 
@@ -174,7 +174,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 			if (rs.next())
 				result = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-						rs.getString(6), rs.getLong(7));
+						rs.getString(6), rs.getLong(7),rs.getInt(8));
 
 			System.out.println("read user");
 
@@ -198,10 +198,11 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 			updateUser.setString(3, u.getSalt_token());
 			updateUser.setString(4, u.getToken());
 			updateUser.setLong(5, u.getTimestamp());
-			updateUser.setInt(6, u.getId());
+			updateUser.setInt(6, u.getScore());
+			updateUser.setInt(7, u.getId());
 			updateUser.executeUpdate();
 
-			System.out.println("new user updated");
+			System.out.println("user updated");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -405,5 +406,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	public void deleteGame() {
 
 	}
+	
+	
 
 }
