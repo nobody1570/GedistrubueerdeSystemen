@@ -328,28 +328,21 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
 
 	@Override
-	public int getMostPlayersWaitingForGameToStart() throws RemoteException{
+	public boolean hasWaitingGame() throws RemoteException{
 		// TODO Auto-generated method stub
-		int max=0;
+		boolean waiting=false;
 		for(Game g:games) {
 			
-			if(g.getAmountOfPlayers()<g.MAX_USERS && !g.getStarted() && !g.getFinished()) {
-				
-				
-				if(g.getAmountOfPlayers()>max) {
-					
-					
-					max=g.getAmountOfPlayers();
-					
-				}
-				
+			if(g.getAmountOfPlayers()<g.MAX_USERS) {
+			
+			waiting=true;	
 				
 			}
 			
 			
 		}
 		
-		return max;
+		return waiting;
 	}
     
     

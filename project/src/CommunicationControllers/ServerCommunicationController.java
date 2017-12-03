@@ -55,44 +55,23 @@ public class ServerCommunicationController extends UnicastRemoteObject implement
 	private PortServerImpl getServerToConnectTo() throws RemoteException{
 		// finds server with the game with the most waiting people --> if those are the same we use currentImpl to choose our server
 		
-		List <PortServerImpl> toChooseFrom=new ArrayList<PortServerImpl>();
-		int max=0;
-		int test;
+		PortServerImpl chosen=null;
+		
 		
 		//get servers with highest amount of waiting players
-		for(PortServerImpl psi: servers) {
-			
-			test=psi.getImpl().getMostPlayersWaitingForGameToStart();
-			if (test==max)toChooseFrom.add(psi);
-			if (test>max) {
-				max=test;
-				toChooseFrom.clear();
-				toChooseFrom.add(psi);
-				
-			}
-			
-			
-		}
 		
-		PortServerImpl chosen=null;
-		Boolean found=false;
 		
-		//choose one of those servers to add a player
-		while(!found) {
+		if(!servers.get(currentImpl).getImpl().hasWaitingGame()) {
 			
-			if(toChooseFrom.contains(servers.get(currentImpl))) {
-				
-				chosen=servers.get(currentImpl);
-				found=true;
-			}
-			
-			//if it's not in the list --> check next (this should ensure an even spreading of the games over the servers)
 			nextCurrentImpl();
-			
+				
 		}
+			
 		
+		chosen=servers.get(currentImpl);
 		
 	
+		
 		return chosen;
 	}
 

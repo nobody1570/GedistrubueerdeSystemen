@@ -52,7 +52,7 @@ public interface Communication extends Remote {
     public boolean logout(int userID) throws RemoteException;
     
     //asks server what the amount of waiting players in the game with the most players is
-	public int getMostPlayersWaitingForGameToStart()throws RemoteException;
+	public boolean hasWaitingGame()throws RemoteException;
 
     
 
