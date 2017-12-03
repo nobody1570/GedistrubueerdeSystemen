@@ -333,7 +333,7 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 		boolean waiting=false;
 		for(Game g:games) {
 			
-			if(g.getAmountOfPlayers()<g.MAX_USERS) {
+			if(g.getAmountOfPlayers()<g.MAX_USERS && !g.getFinished()&&!g.getStarted()) {
 			
 			waiting=true;	
 				
