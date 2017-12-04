@@ -26,12 +26,14 @@ public class ServerCommunicationController extends UnicastRemoteObject implement
 	
 
 	@Override
-	public void addServer(PortServerImpl psi) throws RemoteException {
+	public void addServer(int port) throws RemoteException {
 		// TODO Auto-generated method stub
 		
-		servers.add(psi);
 		
-		System.out.println("added new server on port: "+psi.getPort());
+		
+		servers.add(new PortServerImpl(port));
+		
+		System.out.println("added new server on port: "+port);
 		
 		
 	}

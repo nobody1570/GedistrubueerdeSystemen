@@ -6,7 +6,7 @@ import java.rmi.RemoteException;
 public interface InterfaceSController extends Remote{
 	
 	
-	public void addServer(PortServerImpl psi)throws RemoteException;
+	public void addServer(int port)throws RemoteException;
 	
 	//used in client to connect to one of the servers
 	public int getServerPort() throws RemoteException;

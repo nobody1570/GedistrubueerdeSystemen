@@ -58,7 +58,7 @@ public class MainServer {
                 
          //tell controller that server is online
                 
-                isc.addServer(new PortServerImpl(port));
+                isc.addServer(port);
          System.out.println("system is ready\n port:"+port);
         } catch (Exception e) {
         e.printStackTrace();
