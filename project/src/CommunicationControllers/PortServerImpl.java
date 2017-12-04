@@ -8,7 +8,7 @@ import java.rmi.registry.Registry;
 
 import communication.Communication;
 
-public class PortServerImpl implements Serializable{
+public class PortServerImpl{
 	
 	//implementation with port--> So we know the port the implementation is running on
 	
@@ -19,8 +19,8 @@ public class PortServerImpl implements Serializable{
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final String localhost = "192.168.0.150";
-    //private static final String localhost = "192.168.56.1";
+	private static final String localhost = Constants.Constants.localhost;;
+    
 	
 	int port;
 	Communication impl;

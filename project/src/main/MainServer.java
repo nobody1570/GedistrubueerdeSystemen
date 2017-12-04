@@ -26,7 +26,7 @@ public class MainServer {
 	private static InterfaceSController isc;
 	private static Registry DBRegistry;
 	private static Registry controlRegistry;
-    private static final String localhost = "192.168.0.150";
+    private static final String localhost = Constants.Constants.localhost;
     //private static final String localhost = "192.168.56.1";
 	
     private void startServer() {
