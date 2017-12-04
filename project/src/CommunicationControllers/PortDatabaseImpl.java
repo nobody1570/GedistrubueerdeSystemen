@@ -125,4 +125,13 @@ public synchronized void addWriter() {
 	notifyAll();
 	
 	}
+
+	/**
+	 * @return the port
+	 */
+	public int getPort() {
+		return port;
+	}
+	
+	
 }
