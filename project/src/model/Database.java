@@ -16,22 +16,20 @@ import CommunicationControllers.InterfaceDBController;
 import CommunicationControllers.SimplePortDatabaseImpl;
 import communication.DatabaseCommunication;
 
-public class Database extends UnicastRemoteObject implements DatabaseCommunication{
+public class Database extends UnicastRemoteObject implements DatabaseCommunication {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	//implementation of InterfaceDBController
-	
-	//Communicatie-constanten
+	// implementation of InterfaceDBController
+
+	// Communicatie-constanten
 	private static Registry controlRegistry;
-    private static final String localhost = Constants.Constants.localhost;
-   
-	
-	
-	//connection to database
+	private static final String localhost = Constants.Constants.localhost;
+
+	// connection to database
 	private Connection con;
 
 	// user
@@ -47,33 +45,31 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	private PreparedStatement readGame;
 	private PreparedStatement createCard;
 	private PreparedStatement readCard;
-	
-	
+
 	int dbPort;
 	InterfaceDBController idbc;
 	List<SimplePortDatabaseImpl> otherDBs;
-	
 
-	public Database(InterfaceDBController idbc, int port) throws RemoteException{
-		
-		dbPort=port;
-		this.idbc=idbc;
-		otherDBs=new ArrayList<>();
-		
-		//get other databases
-		
-		List<Integer> temp=idbc.getAllDatabasesPorts();
-		
-		for(int i:temp) {
-			
-			if(i!=dbPort) {
-				
+	public Database(InterfaceDBController idbc, int port) throws RemoteException {
+
+		dbPort = port;
+		this.idbc = idbc;
+		otherDBs = new ArrayList<>();
+
+		// get other databases
+
+		List<Integer> temp = idbc.getAllDatabasesPorts();
+
+		for (int i : temp) {
+
+			if (i != dbPort) {
+
 				otherDBs.add(new SimplePortDatabaseImpl(i));
 			}
-			
+
 		}
 		try {
-			
+
 			Class.forName("org.sqlite.JDBC");
 
 			con = DriverManager.getConnection("jdbc:sqlite:database.db");
@@ -106,25 +102,22 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 				getHighestUserID = con.prepareStatement(getHighestUserIDString);
 
 				// game
-				// insert game 
-				String insertGame = "INSERT INTO game" + "(game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number) VALUES"
+				// insert game
+				String insertGame = "INSERT INTO game"
+						+ "(game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number) VALUES"
 						+ "(?,?,?,?,?,?,?,?,?)";
 				createGame = con.prepareStatement(insertGame);
-				
-				
-				//get game
+
+				// get game
 				String getGame = "SELECT game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number FROM game WHERE game_id = ?";
 				readGame = con.prepareStatement(getGame);
-				
-				
+
 				// insert cards from game
 				String insertCard = "INSERT INTO cards" + "(game_id, user_id, colour, number) VALUES" + "(?,?,?,?)";
 				createCard = con.prepareStatement(insertCard);
-				
-				
-				
-				//get cards
-				
+
+				// get cards
+
 				String getCards = "SELECT colour, number FROM cards WHERE game_id = ? AND user_id= ?";
 				readCard = con.prepareStatement(getCards);
 
@@ -165,6 +158,44 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 			createUser.setString(3, u.getPassword());
 			createUser.executeUpdate();
 			System.out.println("new user created");
+
+			// propagate to other servers
+			int port;
+			for (SimplePortDatabaseImpl dbc : otherDBs) {
+
+				port = dbc.getPort();
+
+				try {
+					idbc.getWriteAccess(port);
+
+					dbc.getDc().nonPropagateCreateUser(u);
+
+					idbc.releaseWriteAccess(port);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	@Override
+	public void nonPropagateCreateUser(User u) throws RemoteException {
+		// TODO Auto-generated method stub
+		try {
+
+			System.out.println("creating new user propagated from other server");
+			createUser.setInt(1, u.getId());
+			createUser.setString(2, u.getLogin());
+			createUser.setString(3, u.getPassword());
+			createUser.executeUpdate();
+			System.out.println("new user created propagated from other server");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -184,7 +215,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 			if (rs.next())
 				result = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-						rs.getString(6), rs.getLong(7),rs.getInt(8));
+						rs.getString(6), rs.getLong(7), rs.getInt(8));
 
 			System.out.println("read user");
 
@@ -209,7 +240,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 			if (rs.next())
 				result = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-						rs.getString(6), rs.getLong(7),rs.getInt(8));
+						rs.getString(6), rs.getLong(7), rs.getInt(8));
 
 			System.out.println("read user");
 
@@ -237,7 +268,47 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 			updateUser.setInt(7, u.getId());
 			updateUser.executeUpdate();
 
+			// propagate to other servers
+			int port;
+			for (SimplePortDatabaseImpl dbc : otherDBs) {
+
+				port = dbc.getPort();
+
+				try {
+					idbc.getWriteAccess(port);
+
+					dbc.getDc().nonPropagateUpdateUser(u);
+
+					idbc.releaseWriteAccess(port);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
 			System.out.println("user updated");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	@Override
+	public void nonPropagateUpdateUser(User u) throws RemoteException {
+		// TODO Auto-generated method stub
+
+		try {
+			System.out.println("updating user propagated from other database");
+			updateUser.setString(1, u.getSalt_password());
+			updateUser.setString(2, u.getPassword());
+			updateUser.setString(3, u.getSalt_token());
+			updateUser.setString(4, u.getToken());
+			updateUser.setLong(5, u.getTimestamp());
+			updateUser.setInt(6, u.getScore());
+			updateUser.setInt(7, u.getId());
+			updateUser.executeUpdate();
+			System.out.println("user updated propagated from other database");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -290,8 +361,9 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 	public void saveGame(Game g) {
 
-		// "(game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number) VALUES"
-		//		+ "(?,?,?,?,?,?,?,?,?)";
+		// "(game_id, player1, player2, player3, player4, turn, direction, last_colour,
+		// last_number) VALUES"
+		// + "(?,?,?,?,?,?,?,?,?)";
 
 		System.out.println("saving game");
 
@@ -308,48 +380,43 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 			if (players.get(3) != null)
 				createGame.setInt(5, players.get(3).getId());
-			
+
 			createGame.setInt(6, g.getTurn());
 			createGame.setInt(7, g.getDirection());
 			createGame.setInt(8, g.getLastColour());
 			createGame.setInt(9, g.getLastNumber());
 
 			createGame.executeUpdate();
-			
-			
-			//add cards to database
-			int gameID=g.getId();
-			//"INSERT INTO cards" + "(game_id, user_id, colour, number) VALUES" + "(?,?,?,?)";
-			
-			//voor alle users
+
+			// add cards to database
+			int gameID = g.getId();
+			// "INSERT INTO cards" + "(game_id, user_id, colour, number) VALUES" +
+			// "(?,?,?,?)";
+
+			// voor alle users
 			List<Card> cl;
-			User u; 
+			User u;
 			int userID;
-			for(int i=0;i<Game.MAX_USERS;i++) {
-				
-			u=players.get(i);
-				
-			if(u!=null) {
-				
-			cl= g.getHand(u);
-			userID=u.getId();
-			
-			for(Card c: cl) {
-				
-				
-			createCard.setInt(1,gameID);
-			createCard.setInt(2,userID);
-			createCard.setInt(3,c.getColourValue());
-			createCard.setInt(4,c.getNumber());
-			createCard.executeUpdate();	
-				
-				
-			}
-				
-			
-				
-				
-			}
+			for (int i = 0; i < Game.MAX_USERS; i++) {
+
+				u = players.get(i);
+
+				if (u != null) {
+
+					cl = g.getHand(u);
+					userID = u.getId();
+
+					for (Card c : cl) {
+
+						createCard.setInt(1, gameID);
+						createCard.setInt(2, userID);
+						createCard.setInt(3, c.getColourValue());
+						createCard.setInt(4, c.getNumber());
+						createCard.executeUpdate();
+
+					}
+
+				}
 			}
 
 			System.out.println("game saved");
@@ -361,79 +428,75 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	}
 
 	public Game readGame(int gameID) {
-		//"SELECT game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number FROM game WHERE game_id = ?"
+		// "SELECT game_id, player1, player2, player3, player4, turn, direction,
+		// last_colour, last_number FROM game WHERE game_id = ?"
 		System.out.println("reading game");
-		Game g=null;
+		Game g = null;
 		try {
-			readGame.setInt(1,gameID);
-			ResultSet rsg=readGame.executeQuery();
-			//creating game
+			readGame.setInt(1, gameID);
+			ResultSet rsg = readGame.executeQuery();
+			// creating game
 			if (rsg.next()) {
 				g = new Game(rsg.getInt(1));
-			
-			Integer p1=rsg.getInt(2);
-			Integer p2=rsg.getInt(3);
-			Integer p3=rsg.getInt(4);
-			Integer p4=rsg.getInt(5);
-			
-			ArrayList<Integer> al=new ArrayList<Integer>(Arrays.asList(p1, p2, p3,p4));
-			
-			int amountOfPlayers=2;
-			
-			if(p3!=null)amountOfPlayers++;
-			if(p4!=null)amountOfPlayers++;
-			
-			for(int i=0;i<amountOfPlayers;i++) {
-				
-				g.addPlayer(readUser(al.get(i)));
-			}
-			
-			//add cards
-			
-			List<User> l =g.getPlayers();
-			
-			for(int i=0;i<amountOfPlayers;i++) {
-				
-				List <Card> lc=g.getHand(l.get(i));
-				
-				
-				readCard.setInt(1, gameID);
-				readCard.setInt(2, l.get(i).getId());
-				
-				ResultSet rs=readCard.executeQuery();
-				
-				while(rs.next()) {
-					
-					
-					lc.add(new Card(rs.getInt(1),rs.getInt(2)));
-					
-					
+
+				Integer p1 = rsg.getInt(2);
+				Integer p2 = rsg.getInt(3);
+				Integer p3 = rsg.getInt(4);
+				Integer p4 = rsg.getInt(5);
+
+				ArrayList<Integer> al = new ArrayList<Integer>(Arrays.asList(p1, p2, p3, p4));
+
+				int amountOfPlayers = 2;
+
+				if (p3 != null)
+					amountOfPlayers++;
+				if (p4 != null)
+					amountOfPlayers++;
+
+				for (int i = 0; i < amountOfPlayers; i++) {
+
+					g.addPlayer(readUser(al.get(i)));
 				}
-				
-				
-				
-			}
-			
-			
-			//set rest of the values.
-			
-			g.setStarted(true);
-			
-			g.setTurn(rsg.getInt(6));
-			g.setDirection(rsg.getInt(7));
-			g.setLastColour(rsg.getInt(8));
-			g.setLastNumber(rsg.getInt(9));
-			
-			g.removeHandsFromStack();
-			g.shuffleCards();
-			
-			
+
+				// add cards
+
+				List<User> l = g.getPlayers();
+
+				for (int i = 0; i < amountOfPlayers; i++) {
+
+					List<Card> lc = g.getHand(l.get(i));
+
+					readCard.setInt(1, gameID);
+					readCard.setInt(2, l.get(i).getId());
+
+					ResultSet rs = readCard.executeQuery();
+
+					while (rs.next()) {
+
+						lc.add(new Card(rs.getInt(1), rs.getInt(2)));
+
+					}
+
+				}
+
+				// set rest of the values.
+
+				g.setStarted(true);
+
+				g.setTurn(rsg.getInt(6));
+				g.setDirection(rsg.getInt(7));
+				g.setLastColour(rsg.getInt(8));
+				g.setLastNumber(rsg.getInt(9));
+
+				g.removeHandsFromStack();
+				g.shuffleCards();
+
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		System.out.println("read game");
 		return g;
 	}
@@ -441,7 +504,5 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	public void deleteGame() {
 
 	}
-	
-	
 
 }

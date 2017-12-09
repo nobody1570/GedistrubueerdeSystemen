@@ -36,4 +36,8 @@ public interface DatabaseCommunication extends Remote {
 
 	public void deleteGame() throws RemoteException;
 
+	public void nonPropagateCreateUser(User u)throws RemoteException;
+
+	public void nonPropagateUpdateUser(User u)throws RemoteException;
+
 }

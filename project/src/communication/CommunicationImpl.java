@@ -13,7 +13,6 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,11 +20,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import CommunicationControllers.InterfaceDBController;
-import CommunicationControllers.SimplePortDatabaseImpl;
 import model.Card;
 import model.Card.Colour;
-import model.Database;
 import model.Game;
 import model.User;
 
