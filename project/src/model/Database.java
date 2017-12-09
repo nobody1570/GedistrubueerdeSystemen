@@ -1,6 +1,7 @@
 package model;
 
 import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import CommunicationControllers.InterfaceDBController;
+import CommunicationControllers.SimplePortDatabaseImpl;
 import communication.DatabaseCommunication;
 
 public class Database extends UnicastRemoteObject implements DatabaseCommunication{
@@ -20,6 +23,15 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	 */
 	private static final long serialVersionUID = 1L;
 
+	//implementation of InterfaceDBController
+	
+	//Communicatie-constanten
+	private static Registry controlRegistry;
+    private static final String localhost = Constants.Constants.localhost;
+   
+	
+	
+	//connection to database
 	private Connection con;
 
 	// user
@@ -35,10 +47,33 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	private PreparedStatement readGame;
 	private PreparedStatement createCard;
 	private PreparedStatement readCard;
+	
+	
+	int dbPort;
+	InterfaceDBController idbc;
+	List<SimplePortDatabaseImpl> otherDBs;
+	
 
-	public Database() throws RemoteException{
-
+	public Database(InterfaceDBController idbc, int port) throws RemoteException{
+		
+		dbPort=port;
+		this.idbc=idbc;
+		otherDBs=new ArrayList<>();
+		
+		//get other databases
+		
+		List<Integer> temp=idbc.getAllDatabasesPorts();
+		
+		for(int i:temp) {
+			
+			if(i!=dbPort) {
+				
+				otherDBs.add(new SimplePortDatabaseImpl(i));
+			}
+			
+		}
 		try {
+			
 			Class.forName("org.sqlite.JDBC");
 
 			con = DriverManager.getConnection("jdbc:sqlite:database.db");

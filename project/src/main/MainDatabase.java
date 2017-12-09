@@ -3,21 +3,32 @@ package main;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+import CommunicationControllers.InterfaceDBController;
+import CommunicationControllers.InterfaceSController;
 import communication.CommunicationImpl;
 import model.Database;
 
 public class MainDatabase {
-	
+	private static Registry controlRegistry;
+    private static final String localhost = Constants.Constants.localhost;
+    private static InterfaceDBController idb;
 	
 
 	 private void startDatabase() {
 	        try {
 	        	
+	        	controlRegistry = LocateRegistry.getRegistry(localhost, 3001);
 	        	
-	                // create on port 1500!
-	                Registry registry = LocateRegistry.createRegistry(1500);
+	        	idb = (InterfaceDBController) controlRegistry.lookup("S_D_Com_Controller");
+	        	
+	        	int port=idb.getNextDatabasePort();
+	        	
+	                // create on port
+	                Registry registry = LocateRegistry.createRegistry(port);
 	                // create a new service named CounterService
-	                registry.rebind("DatabaseService", new Database());
+	                registry.rebind("DatabaseService", new Database(idb,port));
+	                
+	                idb.addDatabase(port);
 	        } catch (Exception e) {
 	        e.printStackTrace();
 	        }

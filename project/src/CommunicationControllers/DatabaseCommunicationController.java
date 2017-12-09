@@ -100,15 +100,9 @@ public class DatabaseCommunicationController extends UnicastRemoteObject impleme
 		return nextPort++;
 	}
 
-	@Override
-	public int getDatabaseForNextNewUser() throws RemoteException {
-		// TODO Auto-generated method stub
-		
-		int port=getNextDatabase();
-		return port;
-	}
 
-	private int getNextDatabase() {
+	@Override
+	public int getNextDatabase() throws RemoteException {
 		// TODO Auto-generated method stub
 		
 		currentToWriteTo++;
@@ -120,30 +114,47 @@ public class DatabaseCommunicationController extends UnicastRemoteObject impleme
 		return next;
 	}
 
-	@Override
-	public int getDatabaseWhereUserIsSaved(int id) throws RemoteException {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 
-	@Override
-	public int getDatabaseWhereUserIsSaved(String login) throws RemoteException {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public void logUserInController(User u,int port) throws RemoteException {
-		// TODO Auto-generated method stub
-		
-		UserID_port.put(u.getId(), port);
-		UserLogin_port.put(u.getLogin(), port);
-		
-	}
 
 	@Override
 	public int getNewUserID() throws RemoteException {
 		// TODO Auto-generated method stub
-		return 0;
+		
+		int max=0;
+		int test;
+		for(PortDatabaseImpl pdi:databasesList) {
+			
+			pdi.addReader();
+			
+			//hier lezen
+			test= pdi.getDc().getHighestID();
+			
+			pdi.removeReader();
+			
+			if(test>max) {
+				
+				
+				max=test;
+			}
+			
+		}
+		
+		
+		
+		return ++max;
+	}
+
+	@Override
+	public List<Integer> getAllDatabasesPorts() throws RemoteException {
+		// TODO Auto-generated method stub
+		
+		List <Integer> portList=new ArrayList<>();
+		
+		for(PortDatabaseImpl pdi:databasesList) {
+			
+			portList.add(pdi.getPort());
+		}
+		
+		return portList;
 	}
 }

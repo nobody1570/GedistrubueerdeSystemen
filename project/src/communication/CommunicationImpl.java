@@ -20,6 +20,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import CommunicationControllers.InterfaceDBController;
+import CommunicationControllers.SimplePortDatabaseImpl;
 import model.Card;
 import model.Card.Colour;
 import model.Database;
@@ -28,15 +31,18 @@ import model.User;
 
 public class CommunicationImpl extends UnicastRemoteObject implements Communication{
  
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	// private Database db;
-    
-    private DatabaseCommunication db;
+	private DatabaseCommunication db;
     private List<Game> games;
     private Set<User> userList;
 
 
     public CommunicationImpl (DatabaseCommunication dBImpl) throws RemoteException{
-        db = dBImpl;
+        this.db = dBImpl;
         games = new ArrayList<Game>();
         userList = new HashSet<User>();
 
@@ -44,6 +50,8 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 
     @Override
     public boolean createNewAccount(String username, String password) throws RemoteException{
+    	
+    	
         System.out.println("create user rmi");
         if (db.readUser(username) == null){
             System.out.println("user bestaat niet");
@@ -58,6 +66,9 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     @Override
     public int login(String name, String pw) throws RemoteException {
         //controleer login in DB
+    	
+    	
+    	
         System.out.println("login rmi");
         User u = db.readUser(name);
         
@@ -79,12 +90,12 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         Game game;
         for (int i=0; i<games.size();i++){
             game = games.get(i);
-            if (game.getAmountOfPlayers()<game.MAX_USERS && !game.getStarted() && !game.getFinished()){
+            if (game.getAmountOfPlayers()<Game.MAX_USERS && !game.getStarted() && !game.getFinished()){
                 //plaats gevonden add player
 
                 game.addPlayer(u);
                 gameFound = i;
-                if(game.getAmountOfPlayers()==game.MAX_USERS){
+                if(game.getAmountOfPlayers()==Game.MAX_USERS){
                     game.start();
                 }
             }
@@ -333,7 +344,7 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 		boolean waiting=false;
 		for(Game g:games) {
 			
-			if(g.getAmountOfPlayers()<g.MAX_USERS && !g.getFinished()&&!g.getStarted()) {
+			if(g.getAmountOfPlayers()<Game.MAX_USERS && !g.getFinished()&&!g.getStarted()) {
 			
 			waiting=true;	
 				

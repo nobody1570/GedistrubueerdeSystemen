@@ -16,6 +16,7 @@ import communication.DatabaseCommunication;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+import CommunicationControllers.InterfaceDBController;
 import CommunicationControllers.InterfaceSController;
 import CommunicationControllers.PortServerImpl;
 
@@ -24,8 +25,11 @@ public class MainServer {
 	
 	private static DatabaseCommunication DBImpl;
 	private static InterfaceSController isc;
+	
+	private static InterfaceDBController idb;
 	private static Registry DBRegistry;
 	private static Registry controlRegistry;
+	private static Registry databaseControlRegistry;
     private static final String localhost = Constants.Constants.localhost;
     //private static final String localhost = "192.168.56.1";
 	
@@ -39,16 +43,21 @@ public class MainServer {
         	int port=isc.getNextServerPort();
         	
         	
+        	//connect to dbcontroller on port 3001
         	
-        		//connect to database on port 1500
-        	DBRegistry = LocateRegistry.getRegistry(localhost, 1500);
+        	databaseControlRegistry = LocateRegistry.getRegistry(localhost,3001);
+        	
+        	idb=(InterfaceDBController)databaseControlRegistry.lookup("S_D_Com_Controller");
+        	
+        	//connect to database on port 1500
+        	int databaseport=idb.getNextDatabase();
+        	
+        	DBRegistry = LocateRegistry.getRegistry(localhost, databaseport);
+        	
+        	
 
             // search for DatabaseCommunication
             DBImpl = (DatabaseCommunication) DBRegistry.lookup("DatabaseService");
-        		
-        		
-        	
-        	
         	
                 // create on port 1099
                 Registry registry = LocateRegistry.createRegistry(port);

@@ -2,6 +2,7 @@ package CommunicationControllers;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 
 import model.User;
 
@@ -20,14 +21,10 @@ public interface InterfaceDBController extends Remote {
 	// Databases use this to determine their port
 	public int getNextDatabasePort() throws RemoteException;
 
-	// get portnumber of database that the new oblect should be written to
-	public int getDatabaseForNextNewUser() throws RemoteException;
-
-	public int getDatabaseWhereUserIsSaved(int id) throws RemoteException;
-
-	public int getDatabaseWhereUserIsSaved(String login) throws RemoteException;
-
-	public void logUserInController(User u,int port) throws RemoteException;
+	public int getNextDatabase() throws RemoteException;
 	
 	public int getNewUserID()throws RemoteException;
+	
+	//voor in server --> alle poortnummers van databases opvragen
+	public List<Integer> getAllDatabasesPorts()throws RemoteException;
 }

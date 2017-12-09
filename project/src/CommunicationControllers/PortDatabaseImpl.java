@@ -132,6 +132,13 @@ public synchronized void addWriter() {
 	public int getPort() {
 		return port;
 	}
+
+	/**
+	 * @return the dc
+	 */
+	public DatabaseCommunication getDc() {
+		return dc;
+	}
 	
 	
 }
