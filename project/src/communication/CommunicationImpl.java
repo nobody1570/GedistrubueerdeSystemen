@@ -20,10 +20,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import CommunicationControllers.InterfaceDBController;
 import model.Card;
 import model.Card.Colour;
 import model.Game;
 import model.User;
+
 
 public class CommunicationImpl extends UnicastRemoteObject implements Communication{
  
@@ -32,13 +34,16 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 	 */
 	private static final long serialVersionUID = 1L;
 	// private Database db;
-	private DatabaseCommunication db;
+	
     private List<Game> games;
     private Set<User> userList;
+	private DatabaseCommunication db;
+	private InterfaceDBController idb;
 
 
-    public CommunicationImpl (DatabaseCommunication dBImpl) throws RemoteException{
+    public CommunicationImpl (DatabaseCommunication dBImpl, InterfaceDBController idb) throws RemoteException{
         this.db = dBImpl;
+        this.idb=idb;
         games = new ArrayList<Game>();
         userList = new HashSet<User>();
 
@@ -49,11 +54,14 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     	
     	
         System.out.println("create user rmi");
+        
+       
         if (db.readUser(username) == null){
             System.out.println("user bestaat niet");
             User u = new User(db.getHighestID()+1,username,"",password);
             db.createUser(u);
             System.out.println("user created");
+        
             return true;
         }
         return false;

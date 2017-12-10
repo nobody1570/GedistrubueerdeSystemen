@@ -62,7 +62,7 @@ public class MainServer {
                 // create on port 1099
                 Registry registry = LocateRegistry.createRegistry(port);
                 // create a new service named CounterService
-                registry.rebind("CommunicationService", new CommunicationImpl(DBImpl));
+                registry.rebind("CommunicationService", new CommunicationImpl(DBImpl,idb));
                 
                 
          //tell controller that server is online

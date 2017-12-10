@@ -40,4 +40,6 @@ public interface DatabaseCommunication extends Remote {
 
 	public void nonPropagateUpdateUser(User u)throws RemoteException;
 
+	public void nonPropagateDeleteUser(int i)throws RemoteException;
+
 }

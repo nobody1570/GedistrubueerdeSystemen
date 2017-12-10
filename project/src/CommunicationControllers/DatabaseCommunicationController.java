@@ -26,10 +26,14 @@ public class DatabaseCommunicationController extends UnicastRemoteObject impleme
 	Map<String,Integer> UserLogin_port;
 	
 	
-	int currentToWriteTo;
+	int currentDatabaseToConnectTo;
 	
 	int nextPort;
 	
+	//voor method getNewUserID()
+	//Als false--> zoekt alle databases af naar hoogste id
+	Boolean checkedDBs;
+	int nextUserID;
 
 	public DatabaseCommunicationController() throws RemoteException {
 		super();
@@ -42,8 +46,10 @@ public class DatabaseCommunicationController extends UnicastRemoteObject impleme
 		UserID_port=new HashMap<>();
 		UserLogin_port=new HashMap<>();
 		
-		currentToWriteTo=0;
+		currentDatabaseToConnectTo=0;
 		nextPort=1500;
+		checkedDBs=false;
+		nextUserID=-1;
 		
 	}
 
@@ -105,11 +111,11 @@ public class DatabaseCommunicationController extends UnicastRemoteObject impleme
 	public int getNextDatabase() throws RemoteException {
 		// TODO Auto-generated method stub
 		
-		currentToWriteTo++;
+		currentDatabaseToConnectTo++;
 		
-		currentToWriteTo=currentToWriteTo%databases.size();
+		currentDatabaseToConnectTo=currentDatabaseToConnectTo%databases.size();
 		
-		int next=databasesList.get(currentToWriteTo).getPort();
+		int next=databasesList.get(currentDatabaseToConnectTo).getPort();
 		
 		return next;
 	}
@@ -120,7 +126,7 @@ public class DatabaseCommunicationController extends UnicastRemoteObject impleme
 	public int getNewUserID() throws RemoteException {
 		// TODO Auto-generated method stub
 		
-		int max=0;
+		if(!checkedDBs) {int max=0;
 		int test;
 		for(PortDatabaseImpl pdi:databasesList) {
 			
@@ -139,10 +145,14 @@ public class DatabaseCommunicationController extends UnicastRemoteObject impleme
 			
 		}
 		
+		nextUserID=max;
+		}
 		
-		
-		return ++max;
+		return ++nextUserID;
 	}
+	
+	
+	
 
 	@Override
 	public List<Integer> getAllDatabasesPorts() throws RemoteException {
