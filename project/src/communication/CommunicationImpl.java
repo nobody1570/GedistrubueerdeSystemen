@@ -38,12 +38,10 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     private List<Game> games;
     private Set<User> userList;
 	private DatabaseCommunication db;
-	private InterfaceDBController idb;
 
 
-    public CommunicationImpl (DatabaseCommunication dBImpl, InterfaceDBController idb) throws RemoteException{
+    public CommunicationImpl (DatabaseCommunication dBImpl) throws RemoteException{
         this.db = dBImpl;
-        this.idb=idb;
         games = new ArrayList<Game>();
         userList = new HashSet<User>();
 
@@ -58,7 +56,7 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
        
         if (db.readUser(username) == null){
             System.out.println("user bestaat niet");
-            User u = new User(db.getHighestID()+1,username,"",password);
+            User u = new User(db.getNextID(),username,"",password);
             db.createUser(u);
             System.out.println("user created");
         

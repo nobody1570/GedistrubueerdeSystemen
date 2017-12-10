@@ -363,6 +363,13 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 		return maxID;
 
 	}
+	
+	@Override
+	public int getNextID() throws RemoteException {
+		// TODO Auto-generated method stub
+		return idbc.getNewUserID();
+	}
+
 
 	@Override
 	public void deleteUser(User u) throws RemoteException {
@@ -577,4 +584,6 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 	}
 
+
+	
 }

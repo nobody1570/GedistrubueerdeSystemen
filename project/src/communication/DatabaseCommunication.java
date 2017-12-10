@@ -42,4 +42,6 @@ public interface DatabaseCommunication extends Remote {
 
 	public void nonPropagateDeleteUser(int i)throws RemoteException;
 
+	public int getNextID()throws RemoteException;
+
 }
