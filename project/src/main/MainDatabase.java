@@ -26,9 +26,15 @@ public class MainDatabase {
 	                // create on port
 	                Registry registry = LocateRegistry.createRegistry(port);
 	                // create a new service named CounterService
-	                registry.rebind("DatabaseService", new Database(idb,port));
+	                
+	                Database db=new Database(idb,port);
+	                registry.rebind("DatabaseService", db);
 	                
 	                idb.addDatabase(port);
+	                
+	                db.init();
+	                
+	                
 	        } catch (Exception e) {
 	        e.printStackTrace();
 	        }

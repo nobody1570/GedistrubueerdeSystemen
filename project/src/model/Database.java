@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 import CommunicationControllers.InterfaceDBController;
 import CommunicationControllers.SimplePortDatabaseImpl;
@@ -56,23 +57,11 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 		this.idbc = idbc;
 		otherDBs = new ArrayList<>();
 
-		// get other databases
-
-		List<Integer> temp = idbc.getAllDatabasesPorts();
-
-		for (int i : temp) {
-
-			if (i != dbPort) {
-
-				otherDBs.add(new SimplePortDatabaseImpl(i));
-			}
-
-		}
 		try {
 
 			Class.forName("org.sqlite.JDBC");
 
-			con = DriverManager.getConnection("jdbc:sqlite:database"+dbPort+".db");
+			con = DriverManager.getConnection("jdbc:sqlite:database" + dbPort + ".db");
 
 			if (con != null) {
 				// prepaperedstatements hieronder
@@ -132,8 +121,34 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 	}
 
+	
+	//getting other databases
+	public void init() throws RemoteException {
+		// wait until other db's are online
+		Scanner sc = new Scanner(System.in);
+
+		System.out.println("Press enter to proceed, only proceed when all databases are online");
+		sc.nextLine();
+		sc.close();
+
+		System.out.println("----------------------------------------------------------");
+
+		// get other databases
+
+		List<Integer> temp = idbc.getAllDatabasesPorts();
+
+		for (int i : temp) {
+
+			if (i != dbPort) {
+
+				otherDBs.add(new SimplePortDatabaseImpl(i));
+			}
+
+		}
+	}
+
 	@Override
-	public void closeConnection() throws RemoteException{
+	public void closeConnection() throws RemoteException {
 
 		if (con != null) {
 			try {
@@ -150,13 +165,13 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	// https://docs.oracle.com/javase/tutorial/jdbc/basics/prepared.html
 	// preparedstatements in constructor maken en hier invullen en uitvoeren
 	@Override
-	public void createUser(User u) throws RemoteException{
+	public void createUser(User u) throws RemoteException {
 		// "INSERT INTO User(id, login, password) VALUES"(?,?,?)
 
 		System.out.println("creating new user");
 		idbc.getWriteAccess(dbPort);
 		try {
-			
+
 			createUser.setInt(1, u.getId());
 			createUser.setString(2, u.getLogin());
 			createUser.setString(3, u.getPassword());
@@ -170,11 +185,9 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 				port = dbc.getPort();
 				idbc.getWriteAccess(port);
 				try {
-					
 
 					dbc.getDc().nonPropagateCreateUser(u);
 
-					
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -182,8 +195,6 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 				idbc.releaseWriteAccess(port);
 
 			}
-			
-			
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -196,7 +207,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	public void nonPropagateCreateUser(User u) throws RemoteException {
 		// TODO Auto-generated method stub
 		try {
-			
+
 			System.out.println("creating new user propagated from other server");
 			createUser.setInt(1, u.getId());
 			createUser.setString(2, u.getLogin());
@@ -211,7 +222,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	}
 
 	@Override
-	public User readUser(String login) throws RemoteException{
+	public User readUser(String login) throws RemoteException {
 		// SELECT id, login, salt_password, password, salt_token, token, timestamp FROM
 		// User WHERE login = ?
 
@@ -227,7 +238,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 						rs.getString(6), rs.getLong(7), rs.getInt(8));
 
 			System.out.println("read user");
-			
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -237,7 +248,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	}
 
 	@Override
-	public User readUser(int i) throws RemoteException{
+	public User readUser(int i) throws RemoteException {
 
 		// SELECT id, login, salt_password, password, salt_token, token, timestamp FROM
 		// User WHERE id = ?
@@ -255,7 +266,6 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 			System.out.println("read user");
 
-			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -265,11 +275,11 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	}
 
 	@Override
-	public void updateUser(User u) throws RemoteException{
+	public void updateUser(User u) throws RemoteException {
 		// Timestamp ID NIET Ge�mplementeerd!
 		// UPDATE User SET salt_password = ?, password = ?, salt_token = ?, token = ?,
 		// timestamp = ? WHERE id = ?
-		
+
 		System.out.println("updating user");
 		idbc.getWriteAccess(dbPort);
 		try {
@@ -290,11 +300,9 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 				port = dbc.getPort();
 				idbc.getWriteAccess(port);
 				try {
-					
 
 					dbc.getDc().nonPropagateUpdateUser(u);
 
-					
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -303,12 +311,12 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 			}
 			System.out.println("user updated");
-			
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		idbc.releaseWriteAccess(dbPort);
 
 	}
@@ -336,7 +344,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	}
 
 	@Override
-	public int getHighestID() throws RemoteException{
+	public int getHighestID() throws RemoteException {
 		System.out.println("searching highest user id");
 		int maxID = -1;
 		try {
@@ -355,16 +363,16 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 		return maxID;
 
 	}
-	
+
 	@Override
-	public void deleteUser(User u) throws RemoteException{
+	public void deleteUser(User u) throws RemoteException {
 
 		deleteUser(u.getId());
 
 	}
 
 	@Override
-	public void deleteUser(int i) throws RemoteException{
+	public void deleteUser(int i) throws RemoteException {
 
 		// DELETE User WHERE id = ?
 		System.out.println("deleting user");
@@ -373,29 +381,27 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 			deleteUser.setInt(1, i);
 			deleteUser.executeUpdate();
-				
+
 			System.out.println("user deleted");
-			
+
 			int port;
 			for (SimplePortDatabaseImpl dbc : otherDBs) {
 
 				port = dbc.getPort();
 				idbc.getWriteAccess(port);
 				try {
-					
 
 					dbc.getDc().nonPropagateDeleteUser(i);
 
-					
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+
 				idbc.releaseWriteAccess(port);
 
 			}
-			
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -403,7 +409,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 		idbc.releaseWriteAccess(dbPort);
 
 	}
-	
+
 	@Override
 	public void nonPropagateDeleteUser(int i) throws RemoteException {
 		// TODO Auto-generated method stub
@@ -412,7 +418,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 			deleteUser.setInt(1, i);
 			deleteUser.executeUpdate();
-				
+
 			System.out.println("propagated user deleted");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -421,8 +427,8 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	}
 
 	@Override
-	//NOT DISTRIBUTED!
-	public void saveGame(Game g) throws RemoteException{
+	// NOT DISTRIBUTED!
+	public void saveGame(Game g) throws RemoteException {
 
 		// "(game_id, player1, player2, player3, player4, turn, direction, last_colour,
 		// last_number) VALUES"
@@ -490,8 +496,8 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	}
 
 	@Override
-	//NOT DISTRIBUTED!
-	public Game readGame(int gameID) throws RemoteException{
+	// NOT DISTRIBUTED!
+	public Game readGame(int gameID) throws RemoteException {
 		// "SELECT game_id, player1, player2, player3, player4, turn, direction,
 		// last_colour, last_number FROM game WHERE game_id = ?"
 		System.out.println("reading game");
@@ -565,13 +571,10 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 		return g;
 	}
 
-	
 	@Override
-	//NOT DISTRIBUTED!
-	public void deleteGame() throws RemoteException{
+	// NOT DISTRIBUTED!
+	public void deleteGame() throws RemoteException {
 
 	}
-
-	
 
 }

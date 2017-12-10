@@ -68,7 +68,7 @@ public class MainServer {
          //tell controller that server is online
                 
                 isc.addServer(port);
-         System.out.println("system is ready\n port:"+port);
+         System.out.println("system is ready\n port:"+port+"\n Uses database: "+databaseport);
         } catch (Exception e) {
         e.printStackTrace();
         }
