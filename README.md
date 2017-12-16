@@ -2,27 +2,28 @@
 
 TODO:
 
-//werkt//- einde spel als iemand geen kaarten meer heeft --> heb boolean finished toegevoegd aan Game--> als iemand geen kaarten meer //heeft--> finished()=true (getter erbij geschreven)
-//  dan popup venster met score van iedereen en automatisch terug naar lobby (wil ik wel doen)
-  
-- in gamecontroller extra task toevoegen analoog aan de andere in methode play
-    de run methode van updategamethread moet uitgevoerd worden
+MOETEN:
 
-//geïmplementeerd
-//- controleren als een kaart kan afgelegd worden clientside (in playcard)
-//    indien foute kaart geef popupvenster met warning
+-Kaarten tonen en speciale versies--> implementeren (speciale versies kunnen via InterfaceSCController worden aangevraagd/doorgestuurd client gaat hier toch altijd mee communiceren)
 
-//geïmplementeerd
-//- bij afsluiten of verlaten game moet er een popupvenster komen met zeker? "spel opslaan/gaat verloren" 
-//spel kan enkel bij een private game worden opgeslaan! Private games zijn nog niet geïmplementeerd.
+-sessietoken--> 24 u geldig
 
-  - andere spelers moeten een waarschuwing krijgen zodat ze weten dat er iemand geleaved is
-- salt gebruiken voor ww op te slaan tegen wnr is dat?
-- indien vragen stuur me
+-paswoorden hashen
 
- extra:
-- aanpassen login errors
-- gebruik puntensysteem 
-- private game
-- afbeeldingen voor kaarten
-- verbetering listview (werkt niet volledig zoals het zou moeten)
+-scorebord
+
+-onderstaande zever:
+De lobby bevat	alle spellen die reeds zijn aangemaakt,	al dan niet reeds gestart. In de lobby kan	
+de gebruiker ervoor kiezen om een nieuw	spel aan te maken, of om deel te nemen	aan een	bestaand spel	
+(waar nog een plaats vrij is).	Bij het	aanmaken van een nieuw spel kan	een speler aangeven tegen hoeveel	
+andere	spelers	hij het	wil opnemen. Heel concreet kan hij deelnemen aan een spel van 2, 3 of 4 spelers.		
+Bovendien kan een speler meekijken naar spelletjes die tussen andere spelers aan de gang zijn.	
+
+MOGEN:
+
+-de rest
+
+
+
+
+
