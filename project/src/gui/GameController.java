@@ -63,7 +63,7 @@ public class GameController implements Initializable {
     
     //game info
     private static int gameID;
-    private static int userID;
+    private static String token;
     private boolean gameFinished;
     
     private ObservableList<Card> hand = FXCollections.observableArrayList();
@@ -235,7 +235,7 @@ public class GameController implements Initializable {
         System.out.println("in update");
         List<Card> hands;
         try {
-            hands = impl.getHand(gameID, userID);
+            hands = impl.getHand(gameID, token);
             
             handView.getItems().setAll(hands);
             //playerListView.getItems().setAll(impl.getSpelersList(gameID));
@@ -267,7 +267,7 @@ public class GameController implements Initializable {
             System.out.println("in update");
             List<Card> hands;
                 
-            hands = impl.getHand(gameID, userID);
+            hands = impl.getHand(gameID, token);
 
             handView.getItems().setAll(hands);
             //playerListView.getItems().setAll(impl.getSpelersList(gameID));
@@ -322,7 +322,7 @@ public class GameController implements Initializable {
                     result.ifPresent(
                         letter -> {
                             try {
-                                impl.setPrefered(gameID, userID, letter);
+                                impl.setPrefered(gameID, token, letter);
                             } catch (RemoteException ex) {
                                 Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
                             }
@@ -336,7 +336,7 @@ public class GameController implements Initializable {
                 //controleer if playable
                 hand.remove(c);
 
-                impl.playCard(userID, gameID, c);
+                impl.playCard(token, gameID, c);
             }else{
                 //not playable
                 Alert alert = new Alert(AlertType.INFORMATION);
@@ -355,7 +355,7 @@ public class GameController implements Initializable {
     
     @FXML void drawCard()throws RemoteException{
         System.out.println("drawCard");
-        impl.drawCard(gameID, userID);
+        impl.drawCard(gameID, token);
         
         draw.setDisable(true);
         playCard.setDisable(true);
@@ -380,7 +380,7 @@ public class GameController implements Initializable {
             @Override public synchronized Void call() throws RemoteException, InterruptedException, IOException {
                 
                 if (impl.getStarted(gameID)){
-                    if(impl.myTurn(gameID,userID)){
+                    if(impl.myTurn(gameID,token)){
                         //myturn to play
                         Platform.runLater(() -> {
                             try {
@@ -441,11 +441,11 @@ public class GameController implements Initializable {
             
     }
     
-    public void redirectGame(int gameID, int userID, Communication impl, Registry myRegistry, String username) {
+    public void redirectGame(int gameID, String token, Communication impl, Registry myRegistry, String username) {
         this.gameID = gameID;
         this.impl = impl;
         this.myRegistry = myRegistry;    
-        this.userID = userID;
+        this.token = token;
         this.username = username;
     }
 }

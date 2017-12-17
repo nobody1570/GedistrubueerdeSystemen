@@ -20,7 +20,11 @@ public interface DatabaseCommunication extends Remote {
 
 	public User readUser(String login) throws RemoteException;
 
+	//met userid
 	public User readUser(int i) throws RemoteException;
+	
+	//met token
+	public User readTokenUser(String token)throws RemoteException;
 
 	public void updateUser(User u) throws RemoteException;
 

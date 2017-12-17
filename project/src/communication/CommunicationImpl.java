@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,13 +45,16 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     private Set<User> userList;
 	private DatabaseCommunication db;
 	SecureRandom random;
+	String chars;
+	char[] charArray;
 
     public CommunicationImpl (DatabaseCommunication dBImpl) throws RemoteException{
         this.db = dBImpl;
         games = new ArrayList<Game>();
         userList = new HashSet<User>();
         random = new SecureRandom();
-
+        chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        charArray=chars.toCharArray();
     }
 
     @Override
@@ -64,9 +68,9 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
             System.out.println("user bestaat niet");
             
             //create salt
-            String chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            
             //System.out.println(chars);
-            char[] charArray=chars.toCharArray();
+            
             StringBuilder sb=new StringBuilder("");
             
             int max=chars.length();
@@ -84,7 +88,7 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 			digest = MessageDigest.getInstance("SHA-512");
 			String text=password+salt;
 			byte[] output=digest.digest(Base64.getDecoder().decode(text));
-			System.out.println("digest succeeded");
+			//System.out.println("digest succeeded");
 			String pw=DatatypeConverter.printHexBinary(output);
             System.out.println(pw);
             
@@ -102,7 +106,7 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
 
     @Override
-    public int login(String name, String pw) throws RemoteException {
+    public String login(String name, String pw) throws RemoteException {
         //controleer login in DB
     	
     	
@@ -120,23 +124,78 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 			byte[] output=digest.digest(Base64.getDecoder().decode(text));
 			pw=DatatypeConverter.printHexBinary(output);
 
+			
             if (u != null && pw.equals(u.getPassword())){
+            		userList.remove(u);
                     userList.add(u);
+                    
                     //token returnen
-                    return u.getId();
-            }
+                    
+                    String token;
+                    User duplicateToken=null;
+                    //generateToken
+                    
+                    StringBuilder sb=new StringBuilder("");
+                    int size=charArray.length;
+                    for(int i=0;i<30;i++) {
+                    	sb.append(charArray[random.nextInt(size)]);
+                    	
+                    	
+                    	}
+                    
+                    
+                    
+                    token=sb.toString()+System.currentTimeMillis();
+                    
+                    u.setToken(token);
+                    u.setTimestamp(System.currentTimeMillis());
+                    
+                    //update in database
+                    
+                    db.updateUser(u);
+                    
+                    return token;
+                    }
+            
             } catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-            return -1;
+            return null;
     }
+    
+    
+    @Override
+    //returns true if token is still valid and logs user in--> else false
+	public boolean login(String token) throws RemoteException {
+		// TODO Auto-generated method stub
+    	
+    	User u=getUserByToken(token);
+    	userList.remove(u);
+    	u=getUserByToken(token);
+    	
+    	if(u==null) return false;
+    	if(u.getTimestamp()<(System.currentTimeMillis()-TimeUnit.DAYS.toMillis(1)))return false;
+    	
+    	userList.add(u);
+    	
+		return true;
+	}
+    
 
     @Override
-    public int getPublicGame(int userID) throws RemoteException, InterruptedException{
+    public int getPublicGame(String token) throws RemoteException, InterruptedException{
         //kijken voor plaats in de games
-        User u = getUserByID(userID);
+        User u = getUserByToken(token);
+        
         int gameFound = -1;
+        
+        
+        //checken of user meer dan 24 uur online was --> in dat geval mag hij geen nieuwe game starten
+        
+        if(u.getTimestamp()>(System.currentTimeMillis()-TimeUnit.DAYS.toMillis(1))){
+        
+        
         Game game;
         for (int i=0; i<games.size();i++){
             game = games.get(i);
@@ -160,8 +219,9 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         }
         System.out.println(games.size());
         System.out.println(games);
-        
+        }
         return gameFound;
+       
     }
 
     @Override
@@ -171,6 +231,8 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         
         if (userList.contains(u)){
                 userList.remove(u);
+                u.setTimestamp(null);
+                db.updateUser(u);
                 return true;
         }
         return false;
@@ -195,8 +257,8 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
     
     @Override
-    public List<Card> getHand(int gameID, int userID){
-        User u = getUserByID(userID);
+    public List<Card> getHand(int gameID, String token){
+        User u = getUserByToken(token);
         //lookup in DB op gameiD
         Game g = getGameByID(gameID);
         List<Card> hand = g.getHand(u);
@@ -204,9 +266,9 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
 
     @Override
-    public synchronized List<Card> drawCard(int gameID, int userID) throws RemoteException {
+    public synchronized List<Card> drawCard(int gameID, String token) throws RemoteException {
         //get user by id
-        User u = getUserByID(userID);
+        User u = getUserByToken(token);
         //get game by id
         Game g = getGameByID(gameID);
         
@@ -252,7 +314,7 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
         
     @Override
-    public synchronized boolean playCard(int userID, int gameID, Card card) throws RemoteException{
+    public synchronized boolean playCard(String token, int gameID, Card card) throws RemoteException{
         System.out.println("server: playcard");
         //zoek game met id in db en return
         //controleer als card is playable adhv last played card
@@ -260,15 +322,15 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         //notify all (getLastPlayedCard)
         boolean succes;
         Game g = getGameByID(gameID);
-        User u = getUserByID(userID);
+        User u = getUserByToken(token);
         succes = g.performTurn(u, card);
         notifyAll();
         return succes;
     }
     @Override
-    public void setPrefered(int gameID, int userID, Colour c)throws RemoteException{
+    public void setPrefered(int gameID, String token, Colour c)throws RemoteException{
         Game g = getGameByID(gameID);
-        User u = getUserByID(userID);
+        User u = getUserByToken(token);
         g.SetPreferredColour(u, c);
     }
     
@@ -307,11 +369,32 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 		}
 		
     }
+    
+    public User getUserByToken(String token){
+        for (User u: userList){
+            if(u.getToken().equals(token)){
+                return u;
+            }
+            
+        }
+        User u;
+		try {
+			u = db.readTokenUser(token);
+		
+        return u;
+        } catch (RemoteException e) {
+			// TODO Auto-generated catch block
+        	
+			e.printStackTrace();
+			return null;
+		}
+		
+    }
 
     @Override
-    public synchronized boolean myTurn(int gameID, int userID) throws RemoteException{
+    public synchronized boolean myTurn(int gameID, String token) throws RemoteException{
         System.out.println("myturn serverside");
-        User u = getUserByID(userID);
+        User u = getUserByToken(token);
         Game g = getGameByID(gameID);
         boolean yourTurn = true;
         //zoland je niet aan de beurt bent en het spel nog niet gedaan is
@@ -381,9 +464,9 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
     
     @Override
-    public synchronized void endGame(int gameID, int userID) throws RemoteException {
+    public synchronized void endGame(int gameID, String token) throws RemoteException {
         Game g = getGameByID(gameID);
-        User u = getUserByID(userID);
+        User u = getUserByToken(token);
         g.removePlayer(u);
         notifyAll();
     }
@@ -405,7 +488,8 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 		
 		return waiting;
 	}
-    
+
+	
     
    
    

@@ -39,6 +39,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	private PreparedStatement deleteUser;
 	private PreparedStatement getUser;
 	private PreparedStatement getUserWithLogin;
+	private PreparedStatement getUserWithToken;
 	private PreparedStatement getHighestUserID;
 
 	// game
@@ -77,6 +78,9 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 				String getUserLogin = "SELECT id, login, salt_password, password, salt_token, token, timestamp, score FROM User WHERE login = ?";
 				getUserWithLogin = con.prepareStatement(getUserLogin);
+				
+				String getUserToken = "SELECT id, login, salt_password, password, salt_token, token, timestamp, score FROM User WHERE token = ?";
+				getUserWithToken = con.prepareStatement(getUserToken);
 
 				// update user
 				String updateUserString = "UPDATE User SET salt_password = ?, password = ?, salt_token = ?, token = ?, timestamp = ?, score = ? WHERE id = ?";
@@ -274,6 +278,31 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 		idbc.releaseReadAccess(dbPort);
 		return result;
 	}
+	
+	@Override
+	public User readTokenUser(String token) throws RemoteException {
+		// TODO Auto-generated method stub
+		System.out.println("reading user");
+		idbc.getReadAccess(dbPort);
+		User result = null;
+		try {
+			getUserWithToken.setString(1, token);
+			ResultSet rs = getUserWithToken.executeQuery();
+
+			if (rs.next())
+				result = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
+						rs.getString(6), rs.getLong(7), rs.getInt(8));
+
+			System.out.println("read user");
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		idbc.releaseReadAccess(dbPort);
+		return result;
+		
+	}
 
 	@Override
 	public void updateUser(User u) throws RemoteException {
@@ -281,7 +310,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 		// UPDATE User SET salt_password = ?, password = ?, salt_token = ?, token = ?,
 		// timestamp = ? WHERE id = ?
 
-		System.out.println("updating user");
+		System.out.println("updating user: "+ u);
 		idbc.getWriteAccess(dbPort);
 		try {
 
@@ -584,6 +613,9 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	public void deleteGame() throws RemoteException {
 
 	}
+
+
+
 
 
 	

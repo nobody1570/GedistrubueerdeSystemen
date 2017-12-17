@@ -32,7 +32,7 @@ import model.Game;
 public class Controller implements Initializable{
     private static Communication impl;
     private static Registry myRegistry;
-    private static int userID;
+    private static String token;
     private static String username;
     private static int gameID;
     
@@ -58,10 +58,10 @@ public class Controller implements Initializable{
                 
                     
         //searchGame();
-        gameID = impl.getPublicGame(userID);
+        gameID = impl.getPublicGame(token);
         System.out.println("gameID: "+gameID);        
         gameController = new GameController();
-        gameController.redirectGame(gameID,userID,impl,myRegistry,username);
+        gameController.redirectGame(gameID,token,impl,myRegistry,username);
         
         Parent root = FXMLLoader.load(getClass().getResource("/gui/gameView.fxml"));
         Scene scene = new Scene(root);
@@ -80,9 +80,9 @@ public class Controller implements Initializable{
         return gameID;
     }
     
-    void redirectLobby(int userID, Communication impl, Registry myRegistry, String username) {
+    void redirectLobby(String token, Communication impl, Registry myRegistry, String username) {
         
-        this.userID = userID;
+        this.token = token;
         this.impl = impl;
         this.myRegistry = myRegistry;
         this.username = username;

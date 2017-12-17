@@ -40,7 +40,7 @@ public class LoginController implements Initializable {
 
     private static Communication impl;
     private static Registry myRegistry;
-    private static int userID;
+    private static String token;
     
     private Controller controller;
     @FXML private Stage stage;
@@ -59,8 +59,8 @@ public class LoginController implements Initializable {
         System.out.println(username.getText() + " "+ password.getText());
         //controleren gegevens zenden naar server
         //pw gwn doorsturen TODO
-        userID = impl.login(username.getText(),password.getText());
-        System.out.println(userID + " "+ username.getText());
+        token = impl.login(username.getText(),password.getText());
+        System.out.println(token + " "+ username.getText());
         //met DB
         /*try{
             Class.forName("com.mysql.jdbc.Driver");
@@ -69,7 +69,7 @@ public class LoginController implements Initializable {
             ResultSet rs = st.execu
         }*/
         //if gegevens ok login else geef foutmelding
-        if (userID >= 0){
+        if (token != null){
             //redirect naar lobby
             controller = new Controller();
             
@@ -77,7 +77,7 @@ public class LoginController implements Initializable {
             Scene scene = new Scene(root);
             Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
             window.setScene(scene);
-            controller.redirectLobby(userID,impl,myRegistry, username.getText());
+            controller.redirectLobby(token,impl,myRegistry, username.getText());
             
             window.setOnCloseRequest(evt -> {		
 	                // prevent window from closing		
@@ -110,7 +110,7 @@ public class LoginController implements Initializable {
             alert.setContentText("Progress might be lost. Unfinished games will be counted as a loss.");		
             if (alert.showAndWait().orElse(ButtonType.NO) == ButtonType.YES) {		
                 try {
-                impl.endGame(controller.getGameID(), userID);
+                impl.endGame(controller.getGameID(), token);
                 } catch (RemoteException ex) {
                     Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE, null, ex);
                 }

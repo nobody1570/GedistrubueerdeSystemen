@@ -6,7 +6,9 @@ MOETEN:
 
 -Kaarten tonen en speciale versies--> implementeren (speciale versies kunnen via InterfaceSCController worden aangevraagd/doorgestuurd client gaat hier toch altijd mee communiceren)
 
--sessietoken--> 24 u geldig
+
+//-sessietoken--> 24 u geldig
+//--> werkt maar het venster sluiten is een expliciete logout--> dit aanpassen?
 
 //geïmplementeerd--> werkt
 //users in dbs:
