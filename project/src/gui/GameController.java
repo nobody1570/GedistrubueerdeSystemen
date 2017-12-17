@@ -70,7 +70,7 @@ public class GameController implements Initializable {
     private ObservableList<User> players = FXCollections.observableArrayList();
     private ObservableList<Integer> handSizes = FXCollections.observableArrayList();
 
-   
+    @FXML public ImageView lastCardI;
     @FXML public ListView<Card> handView;
     @FXML public ListView<User> userView;
     @FXML public ListView<Integer> handsizeView;
@@ -113,15 +113,18 @@ public class GameController implements Initializable {
         });
         //handView.getSelectionModel().getSelectionMode(Selectionmode.MULTIPLE);
         //users toevoegen
-        userView.setItems(players);
-        userView.setCellFactory((ListView<User> p) -> {
-            ListCell<User> cell = new ListCell<User>(){
+        handView.setItems(hand);
+        handView.setCellFactory((ListView<Card> p) -> {
+            ListCell<Card> cell = new ListCell<Card>(){
                 
                 @Override
-                protected void updateItem(User t, boolean bln) {
-                    super.updateItem(t, bln);
-                    if (t != null) {
-                        setText(t.getLogin()+ ":");
+                protected void updateItem(Card c, boolean bln) {
+                    super.updateItem(c, bln);
+                    if (c != null) {
+                        Image i = new Image("image/"+c.getColour()+"_"+c.getNumber()+".png",100,175,true,true);
+                        ImageView imgView = new ImageView(i);
+                        setGraphic(imgView);
+                        
                     }
                 }
                 
@@ -228,6 +231,7 @@ public class GameController implements Initializable {
             alert.showAndWait();
         }
         userView.getItems().setAll(impl.getSpelersList(gameID));
+        lastCardI.setImage(new Image("image/CARDBACK.jpg"));
     }
 
     public void reportAndLogException(final Throwable t)throws RemoteException{
@@ -236,7 +240,7 @@ public class GameController implements Initializable {
         List<Card> hands;
         try {
             hands = impl.getHand(gameID, token);
-            
+            handView.getItems().clear();
             handView.getItems().setAll(hands);
             //playerListView.getItems().setAll(impl.getSpelersList(gameID));
             Card c = impl.getLatestPlayedCard(gameID);
@@ -250,6 +254,7 @@ public class GameController implements Initializable {
                 
                 alert.showAndWait();
             }
+            lastCardI.setImage(new Image("image/"+c.getColour()+"_"+c.getNumber()+".png"));
             lastCard.setText(c.toString());
             //handsizes wijzigen
             List<Integer> handS = impl.getSpelersHandSize(gameID);
