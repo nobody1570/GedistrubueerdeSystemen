@@ -273,7 +273,7 @@ public class GameController implements Initializable {
             List<Card> hands;
                 
             hands = impl.getHand(gameID, token);
-
+            handView.getItems().clear();
             handView.getItems().setAll(hands);
             //playerListView.getItems().setAll(impl.getSpelersList(gameID));
             Card c = impl.getLatestPlayedCard(gameID);
