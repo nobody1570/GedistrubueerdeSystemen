@@ -8,7 +8,16 @@ MOETEN:
 
 -sessietoken--> 24 u geldig
 
--paswoorden hashen
+//geïmplementeerd--> werkt
+//users in dbs:
+//login | password
+//---------------
+//a | a
+//b | b 
+//c | c
+//d | d
+//
+//-paswoorden hashen
 
 -scorebord
 

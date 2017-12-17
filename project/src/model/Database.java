@@ -68,7 +68,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 				// user
 				// voor nieuwe users aan te maken
-				String insertInUser = "INSERT INTO User" + "(id, login, password) VALUES" + "(?,?,?)";
+				String insertInUser = "INSERT INTO User" + "(id, login, password, salt_password) VALUES" + "(?,?,?,?)";
 				createUser = con.prepareStatement(insertInUser);
 
 				// read user
@@ -175,6 +175,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 			createUser.setInt(1, u.getId());
 			createUser.setString(2, u.getLogin());
 			createUser.setString(3, u.getPassword());
+			createUser.setString(4, u.getSalt_password());
 			createUser.executeUpdate();
 			System.out.println("new user created");
 

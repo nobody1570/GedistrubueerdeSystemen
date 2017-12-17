@@ -11,14 +11,19 @@ package communication;
  */
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.xml.bind.DatatypeConverter;
 
 import CommunicationControllers.InterfaceDBController;
 import model.Card;
@@ -38,12 +43,13 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     private List<Game> games;
     private Set<User> userList;
 	private DatabaseCommunication db;
-
+	SecureRandom random;
 
     public CommunicationImpl (DatabaseCommunication dBImpl) throws RemoteException{
         this.db = dBImpl;
         games = new ArrayList<Game>();
         userList = new HashSet<User>();
+        random = new SecureRandom();
 
     }
 
@@ -56,11 +62,41 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
        
         if (db.readUser(username) == null){
             System.out.println("user bestaat niet");
-            User u = new User(db.getNextID(),username,"",password);
+            
+            //create salt
+            String chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            //System.out.println(chars);
+            char[] charArray=chars.toCharArray();
+            StringBuilder sb=new StringBuilder("");
+            
+            int max=chars.length();
+            for(int i=0;i<21;i++) {
+            	sb.append(charArray[random.nextInt(max)]);
+            }
+            String salt=sb.toString();
+            
+           // System.out.println(salt);
+            
+            //TODO hash password
+            MessageDigest digest;
+			try {
+				
+			digest = MessageDigest.getInstance("SHA-512");
+			String text=password+salt;
+			byte[] output=digest.digest(Base64.getDecoder().decode(text));
+			System.out.println("digest succeeded");
+			String pw=DatatypeConverter.printHexBinary(output);
+            System.out.println(pw);
+            
+            User u = new User(db.getNextID(),username,salt,pw);
             db.createUser(u);
             System.out.println("user created");
         
             return true;
+            } catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
         return false;
     }
@@ -75,12 +111,24 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         User u = db.readUser(name);
         
         //System.out.println(pw + " && "+ u.getPassword());
+        
+        
+        //hashen paswoord met salt
+        try {
+			MessageDigest digest=MessageDigest.getInstance("SHA-512");
+			String text=pw+u.getSalt_password();
+			byte[] output=digest.digest(Base64.getDecoder().decode(text));
+			pw=DatatypeConverter.printHexBinary(output);
 
             if (u != null && pw.equals(u.getPassword())){
                     userList.add(u);
                     //token returnen
                     return u.getId();
             }
+            } catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
             return -1;
     }
 
