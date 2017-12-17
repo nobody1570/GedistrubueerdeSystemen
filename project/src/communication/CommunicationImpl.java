@@ -74,7 +74,9 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
             StringBuilder sb=new StringBuilder("");
             
             int max=chars.length();
-            for(int i=0;i<21;i++) {
+            int length=21;
+            if(password.length()%4==0)length++;
+            for(int i=0;i<length;i++) {
             	sb.append(charArray[random.nextInt(max)]);
             }
             String salt=sb.toString();
