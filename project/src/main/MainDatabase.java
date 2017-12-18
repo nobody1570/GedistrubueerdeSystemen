@@ -14,7 +14,7 @@ public class MainDatabase {
     private static InterfaceDBController idb;
 	
 
-	 private void startDatabase() {
+	 void startDatabase() {
 	        try {
 	        	
 	        	controlRegistry = LocateRegistry.getRegistry(localhost, 3001);

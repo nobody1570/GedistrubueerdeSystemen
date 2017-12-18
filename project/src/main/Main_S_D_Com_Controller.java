@@ -10,7 +10,7 @@ import model.Database;
 public class Main_S_D_Com_Controller {
 	
 	
-	 private void startCSComContr() {
+	 void startCSComContr() {
 	        try {
 	        	
 	        	

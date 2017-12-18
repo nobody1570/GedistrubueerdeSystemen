@@ -33,7 +33,7 @@ public class MainServer {
     private static final String localhost = Constants.Constants.localhost;
     //private static final String localhost = "192.168.56.1";
 	
-    private void startServer() {
+    void startServer() {
         try {
         	//connect to C_S_com_controller and get port number to use
         	
