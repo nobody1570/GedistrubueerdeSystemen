@@ -44,6 +44,8 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import model.Card;
@@ -245,6 +247,9 @@ public class GameController implements Initializable {
             //playerListView.getItems().setAll(impl.getSpelersList(gameID));
             Card c = impl.getLatestPlayedCard(gameID);
             //indien colour last played = any
+            
+            //ontdubbelen warning
+            /*
             if(c.getColour()==Colour.ANY){
                 Colour current = impl.getCurrentColour(gameID);
                 Alert alert = new Alert(AlertType.WARNING);
@@ -254,8 +259,10 @@ public class GameController implements Initializable {
                 
                 alert.showAndWait();
             }
+            */
+            
             lastCardI.setImage(new Image("image/"+c.getColour()+"_"+c.getNumber()+".png"));
-            lastCard.setText(c.toString());
+            //lastCard.setText(c.toString());
             //handsizes wijzigen
             List<Integer> handS = impl.getSpelersHandSize(gameID);
             handsizeView.getItems().setAll(handS);
