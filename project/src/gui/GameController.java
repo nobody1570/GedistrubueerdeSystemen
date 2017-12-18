@@ -8,6 +8,7 @@ package gui;
 import communication.Communication;
 import communication.CommunicationImpl;
 import communication.UpdateGameThread;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import static java.lang.Thread.sleep;
 import java.net.URL;
@@ -29,6 +30,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -106,21 +108,19 @@ public class GameController implements Initializable {
         // TODO
         draw.setVisible(false);
         playCard.setVisible(false);
-            
+        //cardBack = new Image("/image/CARDBACK.png");
         season = new String();
         LocalDate localDate = LocalDate.now();
         if(localDate.getMonthValue() == 12 || localDate.getMonthValue() == 1 ||localDate.getMonthValue() == 2){
-            season = "winter";
-            cardBack = new Image("/image/CARDBACK_WINTER.png");
-            
+            season = "Winter";          
         }else{
             if(localDate.getMonthValue() == 10 || localDate.getMonthValue() == 11){
-                season = "haloween";
+                season = "Haloween";
             }else{
-                cardBack = new Image("/image/CARDBACK.png");
+                season = "Classic";
             }
         }
-        cardBackView.setImage(cardBack);
+        
         
         gameFinished = false;
         //handView.setItems(hand);
@@ -206,6 +206,13 @@ public class GameController implements Initializable {
     @FXML
     public void loadGame(ActionEvent event)throws IOException, RemoteException, InterruptedException{
         usernameLabel.setText(username);
+        String cardbackString = impl.getCardback(season);
+        System.out.println(cardbackString);
+        cardBack = new Image(cardbackString);
+        cardBackView.setImage(cardBack);
+                //BufferedImage capture = impl.getCardback(season);
+                //cardBack = SwingFXUtils.toFXImage(capture, null);
+            
         if(impl.getStarted(gameID)){
             
             load.setVisible(false);
@@ -216,7 +223,7 @@ public class GameController implements Initializable {
             System.out.println("updated");
             play();
             load.setDisable(true);
-            
+            //cardBack = new Image(impl.getCardback(season));
             Task updateTask;
             updateTask = new Task<Void>() {
                 @Override public synchronized Void call() throws RemoteException, InterruptedException, IOException {
@@ -322,6 +329,7 @@ public class GameController implements Initializable {
 
                 alert.showAndWait();
             }
+            lastCardI.setImage(new Image("image/"+c.getColour()+"_"+c.getNumber()+".png"));
             lastCard.setText(c.toString());
             //handsizes wijzigen
             List<Integer> handS = impl.getSpelersHandSize(gameID);
@@ -375,8 +383,11 @@ public class GameController implements Initializable {
 
                 //controleer if playable
                 hand.remove(c);
-
+                
                 impl.playCard(token, gameID, c);
+                 List<Card> hands = impl.getHand(gameID, token);
+                handView.getItems().clear();
+                handView.getItems().setAll(hands);
             }else{
                 //not playable
                 Alert alert = new Alert(AlertType.INFORMATION);

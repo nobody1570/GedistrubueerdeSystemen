@@ -39,9 +39,8 @@ public class Game {
 	LinkedList<Card> deck;
 
 	Boolean started;
-    private Boolean finished;
-    
-    private boolean changedScores;
+        private Boolean finished;
+        private boolean changedScores;
 	
 	int amountOfPlayers=0;
 	
@@ -53,8 +52,8 @@ public class Game {
 	Colour preferred;
 
 	public Game(int id) {
-		changedScores=false;
                 finished = false;
+                changedScores=false;
 		this.id=id;
 		deck = new LinkedList<Card>();
 		//alle kaarten toevoegen
@@ -94,25 +93,18 @@ public class Game {
 
 	}
 
-    
-
-	/**
-	 * @return the changedScores
-	 */
-	public boolean getChangedScores() {
-		return changedScores;
-	}
-
-
-
-	/**
-	 * @param changedScores the changedScores to set
-	 */
-	public void setChangedScores(boolean changedScores) {
-		this.changedScores = changedScores;
-	}
-
-
+    	/**		
+        * @return the changedScores	
+        * */
+       public boolean getChangedScores() {		
+               return changedScores;		
+       }		
+       /**		
+        * @param changedScores the changedScores to set		
+        */		
+       public void setChangedScores(boolean changedScores) {		
+               this.changedScores = changedScores;		
+       }
 
 	public void shuffleCards() {
 		Collections.shuffle(deck);

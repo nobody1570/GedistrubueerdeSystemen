@@ -27,6 +27,14 @@ import java.util.logging.Logger;
 import javax.xml.bind.DatatypeConverter;
 
 import CommunicationControllers.InterfaceDBController;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+import javax.imageio.ImageIO;
+
+
 import model.Card;
 import model.Card.Colour;
 import model.Game;
@@ -413,23 +421,16 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         }
         if(g.getFinished()){
                 System.out.println("game gedaan");
-                
-              
-                if(!g.getChangedScores()) {
-                	
-                	g.setChangedScores(true);
-                	Map<User,Integer> scoreMap=g.getScore();
-                	List <User> users=new ArrayList(scoreMap.keySet());
-                	
-                	for(User user:users) {
-                		
-                		db.addScore(user, scoreMap.get(user));
-                	}
-                	
-                	
-                	
-                }
-                
+                if(!g.getChangedScores()) {		
+	                	g.setChangedScores(true);		
+	                	Map<User,Integer> scoreMap=g.getScore();		
+	                	List <User> users=new ArrayList(scoreMap.keySet());		
+	                			
+	                	for(User user:users) {		
+	                				
+	                		db.addScore(user, scoreMap.get(user));		
+	                	}		
+	                }
                 yourTurn = false;
             }
         return yourTurn;
@@ -507,6 +508,21 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 		
 		return waiting;
 	}
+
+    @Override
+    public String getCardback(String theme) throws RemoteException {
+        System.out.println("in getcardback");
+        String path = db.readCardback(theme);
+        
+        System.out.println("test kom ik hier wel?");
+
+        /*ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", "");
+        BufferedImage bi = new BufferedImage(img.getWidth(null),img.getHeight(null),BufferedImage.TYPE_INT_RGB);
+        Graphics bg = bi.getGraphics();
+        bg.drawImage(img, 0, 0, null);
+     bg.dispose();;*/
+        return path;
+    }
 
 	
     

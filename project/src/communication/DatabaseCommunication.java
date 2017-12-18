@@ -1,5 +1,6 @@
 package communication;
 
+import java.awt.image.BufferedImage;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.sql.ResultSet;
@@ -39,6 +40,8 @@ public interface DatabaseCommunication extends Remote {
 	public Game readGame(int gameID) throws RemoteException;
 
 	public void deleteGame() throws RemoteException;
+        
+        public String readCardback(String theme) throws RemoteException;
 
 	public void nonPropagateCreateUser(User u)throws RemoteException;
 
@@ -47,8 +50,8 @@ public interface DatabaseCommunication extends Remote {
 	public void nonPropagateDeleteUser(int i)throws RemoteException;
 
 	public int getNextID()throws RemoteException;
-
-	public void addScore(User u, int gameScore)throws RemoteException;
+        
+        public void addScore(User u, int gameScore)throws RemoteException;
 	
 	public void nonPropagateaddScore(User u, int gameScore) throws RemoteException;
 

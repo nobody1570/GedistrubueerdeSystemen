@@ -9,12 +9,14 @@ package communication;
  *
  * @author Jonas
  */
+import java.awt.image.BufferedImage;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Map;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import model.Card;
 import model.Card.Colour;
 import model.User;
@@ -49,6 +51,8 @@ public interface Communication extends Remote {
     public void endGame(int gameID, String token) throws RemoteException;
     public boolean getFinished(int gameID) throws RemoteException;
     public Map<User, Integer> getScore(int gameID)throws RemoteException;
+    
+    public String getCardback(String theme) throws RemoteException;
     
     public boolean logout(int userID) throws RemoteException;
     

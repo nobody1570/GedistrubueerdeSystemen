@@ -16,6 +16,10 @@ import java.util.Scanner;
 import CommunicationControllers.InterfaceDBController;
 import CommunicationControllers.SimplePortDatabaseImpl;
 import communication.DatabaseCommunication;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 
 public class Database extends UnicastRemoteObject implements DatabaseCommunication {
 
@@ -47,6 +51,8 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	private PreparedStatement readGame;
 	private PreparedStatement createCard;
 	private PreparedStatement readCard;
+        
+        private PreparedStatement readCardback;
 
 	int dbPort;
 	InterfaceDBController idbc;
@@ -113,7 +119,12 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 				String getCards = "SELECT colour, number FROM cards WHERE game_id = ? AND user_id= ?";
 				readCard = con.prepareStatement(getCards);
+                                
+                                // get cardback
+				String getCardback = "SELECT Image FROM image WHERE theme = ?";
+				readCardback = con.prepareStatement(getCardback);
 
+                                
 				System.out.println("ready");
 			}
 
@@ -278,6 +289,36 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 		idbc.releaseReadAccess(dbPort);
 		return result;
 	}
+        
+    /**
+     *
+     * @param theme
+     * @return location string
+     * @throws RemoteException
+     */
+    @Override
+        public String readCardback(String theme) throws RemoteException{
+            System.out.println("retreiving cardback");
+            idbc.getReadAccess(dbPort);
+            String result = null;
+            try {
+			readCardback.setString(1, theme);
+			ResultSet rs = readCardback.executeQuery();
+
+			if (rs.next())
+				result = rs.getString(1);
+
+			System.out.println("read cardback");
+                        System.out.println(rs);
+                        System.out.println(rs.getString(1));
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		idbc.releaseReadAccess(dbPort);
+                System.out.println("result komt terug:"+result);
+            return result;
+        }
 	
 	@Override
 	public User readTokenUser(String token) throws RemoteException {
@@ -614,80 +655,40 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 	}
 
-
-	@Override
-	public synchronized void addScore(User u, int gameScore) throws RemoteException {
-		// TODO Auto-generated method stub
-		
-		try {
-			getUser.setInt(1, u.getId());
-			ResultSet rs = getUser.executeQuery();
-
-			if (rs.next())
-				u = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-						rs.getString(6), rs.getLong(7), rs.getInt(8));
-
+        @Override
+        public synchronized void addScore(User u, int gameScore) throws RemoteException {	
+            try {		
+				getUser.setInt(1, u.getId());		
+				ResultSet rs = getUser.executeQuery();		
 			
+				if (rs.next())		
+					u = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),		
+							rs.getString(6), rs.getLong(7), rs.getInt(8));		
+				u.setScore(u.getScore()+gameScore);		
+				nonPropagateUpdateUser(u);		
+				for (SimplePortDatabaseImpl dbc : otherDBs) {		
+					dbc.getDc().nonPropagateaddScore(u, gameScore);		
+				}		
 			
+			} catch (SQLException e) {		
+				// TODO Auto-generated catch block		
+				e.printStackTrace();		
+			}		
+		}		
+		public synchronized void nonPropagateaddScore(User u, int gameScore) throws RemoteException{		
+			try {		
+				getUser.setInt(1, u.getId());		
+				ResultSet rs = getUser.executeQuery();		
 			
-			u.setScore(u.getScore()+gameScore);
-			
-			
-			nonPropagateUpdateUser(u);
-			
-			for (SimplePortDatabaseImpl dbc : otherDBs) {
-				
-				
-				dbc.getDc().nonPropagateaddScore(u, gameScore);
-				
-				
+				if (rs.next())		
+					u = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),		
+							rs.getString(6), rs.getLong(7), rs.getInt(8));		
+				u.setScore(u.getScore()+gameScore);		
+				nonPropagateUpdateUser(u);		
+			} catch (SQLException e) {		
+				e.printStackTrace();		
 			}
-			
-			
-
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		
-		
-		
-		
-		
-	}
-
-
-	public synchronized void nonPropagateaddScore(User u, int gameScore) throws RemoteException{
-		// TODO Auto-generated method stub
-		
-		
-		try {
-			getUser.setInt(1, u.getId());
-			ResultSet rs = getUser.executeQuery();
-
-			if (rs.next())
-				u = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-						rs.getString(6), rs.getLong(7), rs.getInt(8));
-
-			
-			
-			
-			u.setScore(u.getScore()+gameScore);
-			
-			
-			nonPropagateUpdateUser(u);
-			
-			
-
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	}
-
+        }
 
 
 
