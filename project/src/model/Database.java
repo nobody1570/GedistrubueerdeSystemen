@@ -615,6 +615,80 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	}
 
 
+	@Override
+	public synchronized void addScore(User u, int gameScore) throws RemoteException {
+		// TODO Auto-generated method stub
+		
+		try {
+			getUser.setInt(1, u.getId());
+			ResultSet rs = getUser.executeQuery();
+
+			if (rs.next())
+				u = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
+						rs.getString(6), rs.getLong(7), rs.getInt(8));
+
+			
+			
+			
+			u.setScore(u.getScore()+gameScore);
+			
+			
+			nonPropagateUpdateUser(u);
+			
+			for (SimplePortDatabaseImpl dbc : otherDBs) {
+				
+				
+				dbc.getDc().nonPropagateaddScore(u, gameScore);
+				
+				
+			}
+			
+			
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+		
+		
+		
+	}
+
+
+	public synchronized void nonPropagateaddScore(User u, int gameScore) throws RemoteException{
+		// TODO Auto-generated method stub
+		
+		
+		try {
+			getUser.setInt(1, u.getId());
+			ResultSet rs = getUser.executeQuery();
+
+			if (rs.next())
+				u = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
+						rs.getString(6), rs.getLong(7), rs.getInt(8));
+
+			
+			
+			
+			u.setScore(u.getScore()+gameScore);
+			
+			
+			nonPropagateUpdateUser(u);
+			
+			
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+
 
 
 

@@ -48,4 +48,8 @@ public interface DatabaseCommunication extends Remote {
 
 	public int getNextID()throws RemoteException;
 
+	public void addScore(User u, int gameScore)throws RemoteException;
+	
+	public void nonPropagateaddScore(User u, int gameScore) throws RemoteException;
+
 }

@@ -413,6 +413,23 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         }
         if(g.getFinished()){
                 System.out.println("game gedaan");
+                
+              
+                if(!g.getChangedScores()) {
+                	
+                	g.setChangedScores(true);
+                	Map<User,Integer> scoreMap=g.getScore();
+                	List <User> users=new ArrayList(scoreMap.keySet());
+                	
+                	for(User user:users) {
+                		
+                		db.addScore(user, scoreMap.get(user));
+                	}
+                	
+                	
+                	
+                }
+                
                 yourTurn = false;
             }
         return yourTurn;
