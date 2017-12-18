@@ -233,7 +233,7 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         
         if (userList.contains(u)){
                 userList.remove(u);
-                u.setTimestamp(null);
+                u.setTimestamp(0L);
                 db.updateUser(u);
                 return true;
         }
