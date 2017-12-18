@@ -21,7 +21,8 @@ MOETEN:
 //
 //-paswoorden hashen
 
--scorebord
+//geïmplementeerd --> werkt
+//-scorebord
 
 -onderstaande zever:
 De lobby bevat	alle spellen die reeds zijn aangemaakt,	al dan niet reeds gestart. In de lobby kan	
