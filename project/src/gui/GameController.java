@@ -13,19 +13,24 @@ import static java.lang.Thread.sleep;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.animation.Animation;
+import javafx.animation.TranslateTransitionBuilder;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -46,8 +51,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.util.Duration;
 import model.Card;
 import model.Card.Colour;
 import model.User;
@@ -62,7 +70,7 @@ public class GameController implements Initializable {
     private static Registry myRegistry;
     private static String username;
     
-    
+    private static String season;
     //game info
     private static int gameID;
     private static String token;
@@ -78,6 +86,8 @@ public class GameController implements Initializable {
     @FXML public ListView<Integer> handsizeView;
     
     @FXML public Label lastCard;
+    public Image cardBack;
+    @FXML public ImageView cardBackView;
     @FXML public Button draw;
     @FXML public Button playCard;
     @FXML public Button returnToLobby;
@@ -87,13 +97,30 @@ public class GameController implements Initializable {
     @FXML 
     private Label usernameLabel;
     
-    //id user in game
+    Random random = new Random();
     
     
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
+        draw.setVisible(false);
+        playCard.setVisible(false);
+            
+        season = new String();
+        LocalDate localDate = LocalDate.now();
+        if(localDate.getMonthValue() == 12 || localDate.getMonthValue() == 1 ||localDate.getMonthValue() == 2){
+            season = "winter";
+            cardBack = new Image("/image/CARDBACK_WINTER.png");
+            
+        }else{
+            if(localDate.getMonthValue() == 10 || localDate.getMonthValue() == 11){
+                season = "haloween";
+            }else{
+                cardBack = new Image("/image/CARDBACK.png");
+            }
+        }
+        cardBackView.setImage(cardBack);
         
         gameFinished = false;
         //handView.setItems(hand);
@@ -102,10 +129,13 @@ public class GameController implements Initializable {
             ListCell<Card> cell = new ListCell<Card>(){
                 
                 @Override
-                protected void updateItem(Card t, boolean bln) {
-                    super.updateItem(t, bln);
-                    if (t != null) {
-                        setText(t.getColour()+ ":" + t.getNumber());
+                protected void updateItem(Card card, boolean bln) {
+                    super.updateItem(card, bln);
+                    if (card != null) {
+                        Image i = new Image("image/"+card.getColour()+"_"+card.getNumber()+".png",100,175,true,true);
+                        ImageView imgView = new ImageView(i);
+                        setGraphic(imgView);
+                        
                     }
                 }
                 
@@ -115,17 +145,15 @@ public class GameController implements Initializable {
         });
         //handView.getSelectionModel().getSelectionMode(Selectionmode.MULTIPLE);
         //users toevoegen
-        handView.setItems(hand);
-        handView.setCellFactory((ListView<Card> p) -> {
-            ListCell<Card> cell = new ListCell<Card>(){
+        userView.setItems(players);
+        userView.setCellFactory((ListView<User> p) -> {
+            ListCell<User> cell = new ListCell<User>(){
                 
                 @Override
-                protected void updateItem(Card c, boolean bln) {
-                    super.updateItem(c, bln);
-                    if (c != null) {
-                        Image i = new Image("image/"+c.getColour()+"_"+c.getNumber()+".png",100,175,true,true);
-                        ImageView imgView = new ImageView(i);
-                        setGraphic(imgView);
+                protected void updateItem(User t, boolean bln) {
+                    super.updateItem(t, bln);
+                    if (t != null) {
+                        setText(t.getLogin()+ ":");
                         
                     }
                 }
@@ -233,7 +261,9 @@ public class GameController implements Initializable {
             alert.showAndWait();
         }
         userView.getItems().setAll(impl.getSpelersList(gameID));
-        lastCardI.setImage(new Image("image/CARDBACK.jpg"));
+        
+
+        
     }
 
     public void reportAndLogException(final Throwable t)throws RemoteException{
@@ -246,10 +276,10 @@ public class GameController implements Initializable {
             handView.getItems().setAll(hands);
             //playerListView.getItems().setAll(impl.getSpelersList(gameID));
             Card c = impl.getLatestPlayedCard(gameID);
-            //indien colour last played = any
             
             //ontdubbelen warning
             /*
+            //indien colour last played = any
             if(c.getColour()==Colour.ANY){
                 Colour current = impl.getCurrentColour(gameID);
                 Alert alert = new Alert(AlertType.WARNING);
@@ -258,9 +288,7 @@ public class GameController implements Initializable {
                 alert.setContentText("be careful, colour has changed!");
                 
                 alert.showAndWait();
-            }
-            */
-            
+            }*/
             lastCardI.setImage(new Image("image/"+c.getColour()+"_"+c.getNumber()+".png"));
             //lastCard.setText(c.toString());
             //handsizes wijzigen
@@ -460,4 +488,6 @@ public class GameController implements Initializable {
         this.token = token;
         this.username = username;
     }
+    
+    
 }

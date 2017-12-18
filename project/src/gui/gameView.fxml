@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.image.*?>
 <?import java.lang.*?>
 <?import java.util.*?>
@@ -13,7 +14,7 @@
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
-                  <Label fx:id="usernameLabel" layoutX="47.0" layoutY="265.0" text="username" />
+                  <Label fx:id="usernameLabel" layoutX="56.0" layoutY="265.0" text="username" />
                   <HBox layoutX="-5.0" layoutY="-4.0" prefHeight="220.0" prefWidth="186.0">
                      <children>
                         <ListView fx:id="userView" editable="true" prefHeight="240.0" prefWidth="93.0" />
@@ -22,17 +23,50 @@
                   </HBox>
                </children>
             </AnchorPane>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="357.0" prefWidth="380.0">
+          <AnchorPane minHeight="0.0" minWidth="0.0">
                <children>
-                  <Button fx:id="draw" disable="true" layoutX="316.0" layoutY="41.0" mnemonicParsing="false" onAction="#drawCard" text="Draw" />
-                  <ListView fx:id="handView" editable="true" layoutY="201.0" maxHeight="-Infinity" orientation="HORIZONTAL" prefHeight="236.0" prefWidth="424.0" />
-                  <Button fx:id="playCard" disable="true" layoutX="316.0" layoutY="144.0" mnemonicParsing="false" onAction="#playCard" text="PlayCard" />
-                  <Button fx:id="load" layoutX="32.0" layoutY="144.0" mnemonicParsing="false" onAction="#loadGame" text="LoadGame" />
-                  <Button fx:id="returnToLobby" layoutX="150.0" layoutY="144.0" mnemonicParsing="false" onAction="#returnToLobby" text="ReturnToLobby" />
-                  <ImageView fx:id="lastCardI" fitHeight="118.0" fitWidth="171.0" layoutX="78.0" layoutY="26.0" pickOnBounds="true" preserveRatio="true" />
+                  <VBox layoutY="-3.0" prefHeight="434.0" prefWidth="424.0">
+                     <children>
+                        <HBox prefHeight="171.0" prefWidth="424.0">
+                           <children>
+                              <StackPane prefHeight="150.0" prefWidth="200.0">
+                                 <children>
+                                    <ImageView fx:id="lastCardI" fitHeight="151.0" fitWidth="170.0" pickOnBounds="true" preserveRatio="true" />
+                                    <Button fx:id="playCard" disable="true" mnemonicParsing="false" onAction="#playCard" text="PlayCard" StackPane.alignment="BOTTOM_CENTER" />
+                                 </children>
+                              </StackPane>
+                              <StackPane prefHeight="150.0" prefWidth="200.0">
+                                 <children>
+                                    <ImageView fx:id="cardBackView" fitHeight="150.0" fitWidth="177.0" pickOnBounds="true" preserveRatio="true" />
+                                    <Button fx:id="draw" disable="true" mnemonicParsing="false" onAction="#drawCard" text="Draw" StackPane.alignment="BOTTOM_CENTER" />
+                                 </children>
+                              </StackPane>
+                           </children>
+                        </HBox>
+                        <HBox prefHeight="31.0" prefWidth="424.0">
+                           <children>
+                              <Button fx:id="load" mnemonicParsing="false" onAction="#loadGame" text="LoadGame">
+                                 <HBox.margin>
+                                    <Insets left="25.0" right="25.0" />
+                                 </HBox.margin>
+                              </Button>
+                              <Button fx:id="returnToLobby" mnemonicParsing="false" onAction="#returnToLobby" text="ReturnToLobby">
+                                 <HBox.margin>
+                                    <Insets left="25.0" right="25.0" />
+                                 </HBox.margin>
+                              </Button>
+                           </children>
+                           <padding>
+                              <Insets left="10.0" right="10.0" />
+                           </padding>
+                        </HBox>
+                        <ListView fx:id="handView" editable="true" maxHeight="-Infinity" orientation="HORIZONTAL" prefHeight="235.0" prefWidth="424.0" />
+                     </children>
+                  </VBox>
                </children>
             </AnchorPane>
         </items>
       </SplitPane>
    </children>
 </AnchorPane>
+
