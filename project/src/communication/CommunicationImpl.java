@@ -247,9 +247,9 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         return start;
     }
     @Override
-    public boolean logout(int userID) throws RemoteException {
+    public boolean logout(String token) throws RemoteException {
         //disable token
-        User u = getUserByID(userID);
+        User u = getUserByToken(token);
         
         if (userList.contains(u)){
                 userList.remove(u);
