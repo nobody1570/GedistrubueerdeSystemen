@@ -131,7 +131,7 @@ public class LoginController implements Initializable {
         else{
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Error");
-            alert.setHeaderText("registration fialed");
+            alert.setHeaderText("registration failed");
             alert.setContentText("username already in use!");
 
             alert.showAndWait();
