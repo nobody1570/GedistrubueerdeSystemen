@@ -31,9 +31,9 @@ de gebruiker ervoor kiezen om een nieuw	spel aan te maken, of om deel te nemen	a
 andere	spelers	hij het	wil opnemen. Heel concreet kan hij deelnemen aan een spel van 2, 3 of 4 spelers.		
 Bovendien kan een speler meekijken naar spelletjes die tussen andere spelers aan de gang zijn.	
 
-
--getSpelersList!!!!!!!
-veilig maken --> password, salt en timestamp en token verwijderen voor iets doorgestuurd wordt!!!!!!
+//gefixt
+//-getSpelersList!!!!!!!
+//veilig maken --> password, salt en timestamp en token verwijderen voor iets doorgestuurd wordt!!!!!!
 
 -logout
 --> met token implementeren

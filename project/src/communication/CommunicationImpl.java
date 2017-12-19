@@ -265,8 +265,17 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         System.out.println("zoeken naar spelerslijst voor game");
         //get spelers in current game
         Game g = getGameByID(gameID, priv);
+        List<User>players=g.getPlayers();
         
-        return g.getPlayers();
+        for (User u:players) {
+        	
+        	u.setPassword("");
+        	u.setSalt_password("");
+        	u.setSalt_token("");
+        	u.setToken("");
+        	u.setTimestamp(0L);
+        }
+        return players;
     }
     
     @Override
