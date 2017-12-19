@@ -8,7 +8,7 @@ MOETEN:
 
 
 //-sessietoken--> 24 u geldig
-//--> werkt maar het venster sluiten is een expliciete logout--> dit aanpassen?
+//--> werkt maar het venster sluiten is een expliciete logout--> ok
 
 //geïmplementeerd--> werkt
 //users in dbs:
@@ -30,6 +30,10 @@ de gebruiker ervoor kiezen om een nieuw	spel aan te maken, of om deel te nemen	a
 (waar nog een plaats vrij is).	Bij het	aanmaken van een nieuw spel kan	een speler aangeven tegen hoeveel	
 andere	spelers	hij het	wil opnemen. Heel concreet kan hij deelnemen aan een spel van 2, 3 of 4 spelers.		
 Bovendien kan een speler meekijken naar spelletjes die tussen andere spelers aan de gang zijn.	
+
+
+-getSpelersList!!!!!!!
+veilig maken --> password, salt en timestamp en token verwijderen voor iets doorgestuurd wordt!!!!!!
 
 MOGEN:
 
