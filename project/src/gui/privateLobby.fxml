@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.PrivateLobbyController">
+    <children>
+      <MenuBar prefHeight="32.0" prefWidth="607.0">
+        <menus>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <SplitPane dividerPositions="0.29797979797979796" layoutY="30.0" prefHeight="373.0" prefWidth="607.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="369.0" prefWidth="192.0">
+               <children>
+                  <VBox layoutY="-1.0" prefHeight="373.0" prefWidth="183.0">
+                     <children>
+                        <Label fx:id="usernameLabel" text="Welcome x">
+                           <VBox.margin>
+                              <Insets left="45.0" />
+                           </VBox.margin>
+                        </Label>
+                        <Button fx:id="backToHome" mnemonicParsing="false" onAction="#returnToHome" text="Home">
+                           <VBox.margin>
+                              <Insets bottom="5.0" left="50.0" top="5.0" />
+                           </VBox.margin>
+                        </Button>
+                        <Label text="Here are your games">
+                           <VBox.margin>
+                              <Insets left="20.0" right="20.0" />
+                           </VBox.margin>
+                        </Label>
+                        <ListView fx:id="ownGamesView" prefHeight="323.0" prefWidth="183.0" />
+                     </children>
+                  </VBox>
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <VBox prefHeight="373.0" prefWidth="421.0">
+                     <children>
+                        <Label text="Private Games">
+                           <VBox.margin>
+                              <Insets bottom="5.0" left="25.0" top="5.0" />
+                           </VBox.margin>
+                           <font>
+                              <Font name="Arial" size="28.0" />
+                           </font>
+                        </Label>
+                        <HBox prefHeight="44.0" prefWidth="396.0">
+                           <children>
+                              <Button fx:id="createPrivateGame" mnemonicParsing="false" onAction="#createPrivateGame" text="Create New Game" textAlignment="CENTER">
+                                 <HBox.margin>
+                                    <Insets bottom="5.0" top="5.0" />
+                                 </HBox.margin>
+                              </Button>
+                              <Button fx:id="reFresh" mnemonicParsing="false" onAction="#refresh" text="Refresh">
+                                 <HBox.margin>
+                                    <Insets bottom="5.0" left="25.0" top="5.0" />
+                                 </HBox.margin>
+                              </Button>
+                              <Button mnemonicParsing="false" onAction="#joinPrivateGame" text="Join Game">
+                                 <HBox.margin>
+                                    <Insets bottom="5.0" left="25.0" top="5.0" />
+                                 </HBox.margin>
+                              </Button>
+                           </children>
+                           <VBox.margin>
+                              <Insets left="25.0" />
+                           </VBox.margin>
+                        </HBox>
+                        <ListView fx:id="lobbyView" prefHeight="344.0" prefWidth="396.0">
+                           <VBox.margin>
+                              <Insets left="25.0" top="5.0" />
+                           </VBox.margin>
+                        </ListView>
+                     </children></VBox>
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+   </children>
+</AnchorPane>
