@@ -55,6 +55,11 @@
                                     <Insets left="25.0" right="25.0" />
                                  </HBox.margin>
                               </Button>
+                              <Button fx:id="start" mnemonicParsing="false" onAction="#startGame" text="StartGame">
+                                 <HBox.margin>
+                                    <Insets left="25.0" right="25.0" />
+                                 </HBox.margin>
+                              </Button>
                            </children>
                            <padding>
                               <Insets left="10.0" right="10.0" />

@@ -37,6 +37,7 @@ public class Controller implements Initializable{
     private static int gameID;
     
     private GameController gameController;
+    private PrivateLobbyController privateLobbyController;
     @FXML
     private Stage stage;
     @FXML 
@@ -45,6 +46,7 @@ public class Controller implements Initializable{
     @Override
     public void initialize(URL url, ResourceBundle rb) {   
         gameID = -1;
+        userName.setText("Welcome "+username);
     }
 
     public void setStage(Stage stage){
@@ -61,8 +63,8 @@ public class Controller implements Initializable{
         gameID = impl.getPublicGame(token);
         System.out.println("gameID: "+gameID);        
         gameController = new GameController();
-        gameController.redirectGame(gameID,token,impl,myRegistry,username);
-        
+        gameController.redirectGame(gameID,token,impl,myRegistry,username, false);
+        gameController.setPrivateGame(false);
         Parent root = FXMLLoader.load(getClass().getResource("/gui/gameView.fxml"));
         Scene scene = new Scene(root);
         Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
@@ -72,8 +74,17 @@ public class Controller implements Initializable{
     }
     
     @FXML 
-    void joinPrivate(ActionEvent event){
+    void joinPrivate(ActionEvent event)throws IOException{
+        System.out.println("gameID: "+gameID);        
+        privateLobbyController = new PrivateLobbyController();
+        privateLobbyController.redirectPrivateLobby(token,impl,myRegistry,username);
         
+        Parent root = FXMLLoader.load(getClass().getResource("/gui/privateLobby.fxml"));
+        Scene scene = new Scene(root);
+        Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
+        window.setScene(scene);
+        //gameController.loadGame(gameID);
+        window.show();
     }
 
     public int getGameID(){
@@ -86,6 +97,7 @@ public class Controller implements Initializable{
         this.impl = impl;
         this.myRegistry = myRegistry;
         this.username = username;
+        
     }
     
     

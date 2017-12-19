@@ -209,12 +209,12 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
         Game game;
         for (int i=0; i<games.size();i++){
             game = games.get(i);
-            if (game.getAmountOfPlayers()<Game.MAX_USERS && !game.getStarted() && !game.getFinished()){
+            if (game.getAmountOfPlayers()<game.getMaxUsers() && !game.getStarted() && !game.getFinished() && !game.isPrivateGame()){
                 //plaats gevonden add player
 
                 game.addPlayer(u);
                 gameFound = i;
-                if(game.getAmountOfPlayers()==Game.MAX_USERS){
+                if(game.getAmountOfPlayers()==game.getMaxUsers()){
                     game.start();
                 }
             }
@@ -235,6 +235,18 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
 
     @Override
+    public synchronized boolean startGame(int gameID, boolean priv) throws RemoteException{
+        Game g = getGameByID(gameID, priv);
+        boolean start = g.getStarted();
+        //niet begonnen en met meer dan 1 => start
+        if(!start && g.getAmountOfPlayers()>1){
+            start = true;
+            g.start();
+            
+        }
+        return start;
+    }
+    @Override
     public boolean logout(int userID) throws RemoteException {
         //disable token
         User u = getUserByID(userID);
@@ -249,16 +261,17 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
 
     @Override
-    public List<User> getSpelersList(int gameID) throws RemoteException {	
+    public List<User> getSpelersList(int gameID, boolean priv) throws RemoteException {
+        System.out.println("zoeken naar spelerslijst voor game");
         //get spelers in current game
-        Game g = getGameByID(gameID);
+        Game g = getGameByID(gameID, priv);
         
         return g.getPlayers();
     }
     
     @Override
-    public List<Integer> getSpelersHandSize(int gameID) throws RemoteException {
-        Game g = getGameByID(gameID);
+    public List<Integer> getSpelersHandSize(int gameID, boolean priv) throws RemoteException {
+        Game g = getGameByID(gameID, priv);
         List<Integer> handSizes = new ArrayList<>();
         for (User u: g.getPlayers()){
             handSizes.add(g.getHand(u).size());
@@ -267,20 +280,20 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
     
     @Override
-    public List<Card> getHand(int gameID, String token){
+    public List<Card> getHand(int gameID, String token, boolean priv) throws RemoteException{
         User u = getUserByToken(token);
         //lookup in DB op gameiD
-        Game g = getGameByID(gameID);
+        Game g = getGameByID(gameID, priv);
         List<Card> hand = g.getHand(u);
         return hand;
     }
 
     @Override
-    public synchronized List<Card> drawCard(int gameID, String token) throws RemoteException {
+    public synchronized List<Card> drawCard(int gameID, String token, boolean priv) throws RemoteException {
         //get user by id
         User u = getUserByToken(token);
         //get game by id
-        Game g = getGameByID(gameID);
+        Game g = getGameByID(gameID, priv);
         
         //perform turn
         if(g.performTurn(u, null)){
@@ -297,10 +310,10 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
 
     @Override
-    public synchronized Card getLatestPlayedCard(int userID, int gameID, int latestReceivedMove) throws RemoteException {
+    public synchronized Card getLatestPlayedCard(int userID, int gameID, int latestReceivedMove, boolean priv) throws RemoteException {
         System.out.println("server: getlatestCard");
         //get game, look in game for latest card
-        Game g = getGameByID(gameID);
+        Game g = getGameByID(gameID, priv);
         Card c = null;
         try {
             
@@ -314,47 +327,54 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
     
     @Override
-    public Card getLatestPlayedCard(int gameID) throws RemoteException {
+    public Card getLatestPlayedCard(int gameID, boolean priv) throws RemoteException {
         System.out.println("server: getlatestCard");
         //get game, look in game for latest card
-        Game g = getGameByID(gameID);
+        Game g = getGameByID(gameID, priv);
  
         return g.getLastCard();
         
     }
         
     @Override
-    public synchronized boolean playCard(String token, int gameID, Card card) throws RemoteException{
+    public synchronized boolean playCard(String token, int gameID, Card card, boolean priv) throws RemoteException{
         System.out.println("server: playcard");
         //zoek game met id in db en return
         //controleer als card is playable adhv last played card
         //set last palyed card
         //notify all (getLastPlayedCard)
         boolean succes;
-        Game g = getGameByID(gameID);
+        Game g = getGameByID(gameID, priv);
         User u = getUserByToken(token);
         succes = g.performTurn(u, card);
         notifyAll();
         return succes;
     }
     @Override
-    public void setPrefered(int gameID, String token, Colour c)throws RemoteException{
-        Game g = getGameByID(gameID);
+    public void setPrefered(int gameID, String token, Colour c, boolean priv)throws RemoteException{
+        Game g = getGameByID(gameID, priv);
         User u = getUserByToken(token);
         g.SetPreferredColour(u, c);
     }
     
     @Override
-    public boolean getStarted(int gameID) throws RemoteException {
-        Game g = getGameByID(gameID);
+    public boolean getStarted(int gameID, boolean priv) throws RemoteException {
+        Game g = getGameByID(gameID, priv);
         return g.getStarted();
     }
     
-    public Game getGameByID(int gameID){
+    public Game getGameByID(int gameID, boolean priv)throws RemoteException{
         for (Game g : games){
-            if(g.getId()==gameID){
+            if(g.getId()==gameID && g.isPrivateGame() == priv){
                 return g;
             }
+        }
+        //indien private en niet in cache => zoeken in DB
+        if(priv){
+            Game g = db.readGame(gameID);
+            games.add(g);
+            System.out.println("game is priv opzoeken in db voor in cache: "+g);
+            return g;
         }
         return null;
     }
@@ -402,10 +422,10 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
 
     @Override
-    public synchronized boolean myTurn(int gameID, String token) throws RemoteException{
+    public synchronized boolean myTurn(int gameID, String token, boolean priv) throws RemoteException{
         System.out.println("myturn serverside");
         User u = getUserByToken(token);
-        Game g = getGameByID(gameID);
+        Game g = getGameByID(gameID, priv);
         boolean yourTurn = true;
         //zoland je niet aan de beurt bent en het spel nog niet gedaan is
         while(!u.equals(g.getPlayers().get(g.getTurn())) && !g.getFinished()){
@@ -437,41 +457,41 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
 
     @Override
-    public Colour getCurrentColour(int gameID) throws RemoteException {
-        Game g = getGameByID(gameID);
+    public Colour getCurrentColour(int gameID, boolean priv) throws RemoteException {
+        Game g = getGameByID(gameID, priv);
         return g.getCurrent();
     }
 
     @Override
-    public int getLastMove(int gameID) throws RemoteException {
+    public int getLastMove(int gameID, boolean priv) throws RemoteException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Map<User, Integer> getScore(int gameID)throws RemoteException {
-        Game g = getGameByID(gameID);
+    public Map<User, Integer> getScore(int gameID, boolean priv)throws RemoteException {
+        Game g = getGameByID(gameID, priv);
         return g.getScore();
     }
     
     @Override
-	public boolean playCardAllowed(int gameID, Card c) throws RemoteException {
+	public boolean playCardAllowed(int gameID, Card c, boolean priv) throws RemoteException {
 		// TODO Auto-generated method stub
 		
-		Game g=getGameByID(gameID);
+		Game g=getGameByID(gameID, priv);
 		
 		return g.playCardAllowed(c);
 	}
 
     @Override
-    public synchronized boolean getFinished(int gameID) throws RemoteException {
-        Game g = getGameByID(gameID);
+    public synchronized boolean getFinished(int gameID, boolean priv) throws RemoteException {
+        Game g = getGameByID(gameID, priv);
         
         return g.getFinished();
     }
 
     @Override
-    public synchronized boolean waitForNewCardPlayed(int gameID) throws RemoteException {
-        Game g = getGameByID(gameID);
+    public synchronized boolean waitForNewCardPlayed(int gameID, boolean priv) throws RemoteException {
+        Game g = getGameByID(gameID, priv);
         try {
             wait();
         } catch (InterruptedException ex) {
@@ -484,10 +504,14 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
     }
     
     @Override
-    public synchronized void endGame(int gameID, String token) throws RemoteException {
-        Game g = getGameByID(gameID);
+    public synchronized void endGame(int gameID, String token, boolean priv) throws RemoteException {
+        Game g = getGameByID(gameID, priv);
         User u = getUserByToken(token);
         g.removePlayer(u);
+        if(priv){
+            db.deleteGame(gameID);
+        }
+        
         notifyAll();
     }
 
@@ -497,7 +521,7 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
 		boolean waiting=false;
 		for(Game g:games) {
 			
-			if(g.getAmountOfPlayers()<Game.MAX_USERS && !g.getFinished()&&!g.getStarted()) {
+			if(g.getAmountOfPlayers()<g.getMaxUsers() && !g.getFinished()&&!g.getStarted()) {
 			
 			waiting=true;	
 				
@@ -523,9 +547,68 @@ public class CommunicationImpl extends UnicastRemoteObject implements Communicat
      bg.dispose();;*/
         return path;
     }
+    /*
+    **return list of all games where user participates in
+    */
+    @Override
+    public List<Game> getAllParticipatingGames(String token) throws RemoteException {
+        //naar db gaan kijken voor alle games waarin pers zit
+        List<Game> participatingGames = db.getParticipatingGames(token);
+        return participatingGames;
+    }
 
-	
+    @Override
+    public List<Game> getAllPrivateGames(String token) throws RemoteException {
+        //hier bijhouden welke games gemaakt of in db kijken naar alle games? of 20niet volle games?
+        List<Game> participatingGames = db.getPrivateGames();
+        
+        return participatingGames;
+    }
+
+    @Override
+    public int getCreatePrivateGame(String token, int maxUsers)throws RemoteException{
+        //naar db gaan om priv game aan te maken en game terug sturen, dan game adden in games en gameID terugsturen
+        int highestGameID = db.getHighestGameID()+1;
+        Game game = new Game(highestGameID, maxUsers);
+        game.addPlayer(getUserByToken(token));
+        games.add(game);
+        db.saveGame(game);
+        System.out.println("game id: "+game.getId());
+        return game.getId();
+    }
     
+    @Override
+    public boolean joinPrivateGame(int gameID, String token)throws RemoteException{
+        //check if game is in cache, otherwise put it in cache
+        User u = getUserByToken(token);
+        Game g = getGameByID(gameID, true);
+        //try joining
+        boolean joined = false;
+        //er reeds in 
+        if(g.getPlayers().contains(u)){
+            System.out.println("player in game in cache");
+            joined = true;
+        }else{
+            System.out.println("player niet in game kijk of erin kan");
+            if(g.getAmountOfPlayers()<g.getMaxUsers() && !g.getFinished()){
+                System.out.println("probeer erin te steken"+ g.getAmountOfPlayers()+"/"+g.getMaxUsers());
+                joined = db.joinGame(gameID,token);
+                
+                if(joined ){
+                    //aanpassen versie in cache
+                    games.remove(g);
+                    g = db.readGame(gameID);
+                    games.add(g);
+                    if(g.getAmountOfPlayers()==g.getMaxUsers()){
+                         g.start();
+                         
+                    }
+                   
+                }
+            }
+        }
+        return joined;
+    }
    
    
 

@@ -72,12 +72,12 @@ public class LoginController implements Initializable {
         if (token != null){
             //redirect naar lobby
             controller = new Controller();
-            
+            controller.redirectLobby(token,impl,myRegistry, username.getText());
             Parent root = FXMLLoader.load(getClass().getResource("/gui/lobby.fxml"));
             Scene scene = new Scene(root);
             Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
             window.setScene(scene);
-            controller.redirectLobby(token,impl,myRegistry, username.getText());
+            
             
             window.setOnCloseRequest(evt -> {		
 	                // prevent window from closing		
@@ -110,7 +110,8 @@ public class LoginController implements Initializable {
             alert.setContentText("Progress might be lost. Unfinished games will be counted as a loss.");		
             if (alert.showAndWait().orElse(ButtonType.NO) == ButtonType.YES) {		
                 try {
-                impl.endGame(controller.getGameID(), token);
+                    //TODO hoe weten priv of publ game?
+                impl.endGame(controller.getGameID(), token, false);
                 } catch (RemoteException ex) {
                     Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE, null, ex);
                 }

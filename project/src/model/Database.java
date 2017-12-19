@@ -19,6 +19,8 @@ import communication.DatabaseCommunication;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
 public class Database extends UnicastRemoteObject implements DatabaseCommunication {
@@ -49,17 +51,23 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 	// game
 	private PreparedStatement createGame;
 	private PreparedStatement readGame;
+        private PreparedStatement removeGame;
 	private PreparedStatement createCard;
 	private PreparedStatement readCard;
         
+	private PreparedStatement getHighestGameID;
+        
         private PreparedStatement readCardback;
-
+        private PreparedStatement readPrivateGames;
+        private PreparedStatement readParticipatingGames;
+        
+        int mutex;
 	int dbPort;
 	InterfaceDBController idbc;
 	List<SimplePortDatabaseImpl> otherDBs;
 
 	public Database(InterfaceDBController idbc, int port) throws RemoteException {
-
+                mutex = 1;
 		dbPort = port;
 		this.idbc = idbc;
 		otherDBs = new ArrayList<>();
@@ -103,12 +111,18 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 				// game
 				// insert game
 				String insertGame = "INSERT INTO game"
-						+ "(game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number) VALUES"
-						+ "(?,?,?,?,?,?,?,?,?)";
+						+ "(game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number, started, maxPlayers) VALUES"
+						+ "(?,?,?,?,?,?,?,?,?,?,?)";
 				createGame = con.prepareStatement(insertGame);
+                                String removeGameString = "DELETE FROM game WHERE game_id = ?";
+				removeGame = con.prepareStatement(removeGameString);
+
+                                // get max id of users
+				String getHighestGameIDString = "SELECT MAX(game_id) FROM game";
+				getHighestGameID = con.prepareStatement(getHighestGameIDString);
 
 				// get game
-				String getGame = "SELECT game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number FROM game WHERE game_id = ?";
+				String getGame = "SELECT game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number, started, maxPlayers FROM game WHERE game_id = ?";
 				readGame = con.prepareStatement(getGame);
 
 				// insert cards from game
@@ -124,6 +138,13 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 				String getCardback = "SELECT Image FROM image WHERE theme = ?";
 				readCardback = con.prepareStatement(getCardback);
 
+                                //get All not started private games
+                                String getPrivateGames = "SELECT game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number, started, maxPlayers FROM game WHERE turn = 0";
+                                readPrivateGames = con.prepareStatement(getPrivateGames);
+                                
+                                //get All games where user participates in
+                                String getParticipatingGames = "SELECT game_id, player1, player2, player3, player4, turn, direction, last_colour, last_number, started, maxPlayers FROM game WHERE player1 = ? OR player2 = ? OR player3 = ? OR player4 = ?";
+                                readParticipatingGames = con.prepareStatement(getParticipatingGames);
                                 
 				System.out.println("ready");
 			}
@@ -434,6 +455,27 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 		return maxID;
 
 	}
+        
+        @Override
+	public int getHighestGameID() throws RemoteException {
+		System.out.println("searching highest game id");
+		int maxID = -1;
+		try {
+
+			getHighestGameID.execute();
+			ResultSet rs = getHighestGameID.getResultSet();
+
+			if (rs.next()) {
+				maxID = rs.getInt(1);
+			}
+			System.out.println("max id received");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return maxID;
+
+	}
 	
 	@Override
 	public int getNextID() throws RemoteException {
@@ -518,22 +560,21 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 			// add players to database
 			createGame.setInt(1, g.getId());
-			createGame.setInt(2, players.get(0).getId());
-			createGame.setInt(3, players.get(1).getId());
-
-			if (players.get(2) != null)
-				createGame.setInt(4, players.get(2).getId());
-
-			if (players.get(3) != null)
-				createGame.setInt(5, players.get(3).getId());
-
+			
+                        for(int i =0; i<players.size();i++){
+                            if (players.get(i) != null){
+                                createGame.setInt(2+i, players.get(i).getId());
+                            }
+                        }
 			createGame.setInt(6, g.getTurn());
 			createGame.setInt(7, g.getDirection());
 			createGame.setInt(8, g.getLastColour());
 			createGame.setInt(9, g.getLastNumber());
-
+                        createGame.setBoolean(10, g.getStarted());
+                        createGame.setInt(11,g.getMaxUsers());
 			createGame.executeUpdate();
 
+                        System.out.println("adding cards");
 			// add cards to database
 			int gameID = g.getId();
 			// "INSERT INTO cards" + "(game_id, user_id, colour, number) VALUES" +
@@ -543,7 +584,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 			List<Card> cl;
 			User u;
 			int userID;
-			for (int i = 0; i < Game.MAX_USERS; i++) {
+			for (int i = 0; i < g.getMaxUsers(); i++) {
 
 				u = players.get(i);
 
@@ -573,6 +614,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 
 	}
 
+        
 	@Override
 	// NOT DISTRIBUTED!
 	public Game readGame(int gameID) throws RemoteException {
@@ -585,60 +627,11 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 			ResultSet rsg = readGame.executeQuery();
 			// creating game
 			if (rsg.next()) {
-				g = new Game(rsg.getInt(1));
-
-				Integer p1 = rsg.getInt(2);
-				Integer p2 = rsg.getInt(3);
-				Integer p3 = rsg.getInt(4);
-				Integer p4 = rsg.getInt(5);
-
-				ArrayList<Integer> al = new ArrayList<Integer>(Arrays.asList(p1, p2, p3, p4));
-
-				int amountOfPlayers = 2;
-
-				if (p3 != null)
-					amountOfPlayers++;
-				if (p4 != null)
-					amountOfPlayers++;
-
-				for (int i = 0; i < amountOfPlayers; i++) {
-
-					g.addPlayer(readUser(al.get(i)));
-				}
-
-				// add cards
-
-				List<User> l = g.getPlayers();
-
-				for (int i = 0; i < amountOfPlayers; i++) {
-
-					List<Card> lc = g.getHand(l.get(i));
-
-					readCard.setInt(1, gameID);
-					readCard.setInt(2, l.get(i).getId());
-
-					ResultSet rs = readCard.executeQuery();
-
-					while (rs.next()) {
-
-						lc.add(new Card(rs.getInt(1), rs.getInt(2)));
-
-					}
-
-				}
-
-				// set rest of the values.
-
-				g.setStarted(true);
-
-				g.setTurn(rsg.getInt(6));
-				g.setDirection(rsg.getInt(7));
-				g.setLastColour(rsg.getInt(8));
-				g.setLastNumber(rsg.getInt(9));
-
-				g.removeHandsFromStack();
-				g.shuffleCards();
-
+				g = new Game(rsg.getInt(1), rsg.getInt(11));
+                                //methode om neuwe game in te stellen 
+                                
+                                g = setGame(g, rsg.getInt(2),rsg.getInt(3),rsg.getInt(4),rsg.getInt(5),rsg.getInt(6),rsg.getInt(7),rsg.getInt(8),rsg.getInt(9),rsg.getBoolean(10));
+				
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -649,10 +642,70 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 		return g;
 	}
 
+        public Game setGame(Game g, Integer p1,Integer p2,Integer p3,Integer p4,int turn,int direction,int number,int colour, boolean started)throws RemoteException, SQLException{
+            ArrayList<Integer> al = new ArrayList<Integer>(Arrays.asList(p1, p2, p3, p4));
+
+            int amountOfPlayers = 1;
+            if (p2 != null)
+                    amountOfPlayers++;
+            if (p3 != null)
+                    amountOfPlayers++;
+            if (p4 != null)
+                    amountOfPlayers++;
+
+            for (int i = 0; i < amountOfPlayers; i++) {
+
+                    g.addPlayer(readUser(al.get(i)));
+            }
+
+            // add cards
+            if(started){
+                List<User> l = g.getPlayers();
+
+                for (int i = 0; i < amountOfPlayers; i++) {
+
+                    List<Card> lc = g.getHand(l.get(i));
+
+                    readCard.setInt(1, g.getId());
+                    readCard.setInt(2, l.get(i).getId());
+
+                    ResultSet rs = readCard.executeQuery();
+
+                    while (rs.next()) {
+                        lc.add(new Card(rs.getInt(1), rs.getInt(2)));
+                    }
+                    g.removeHandsFromStack();
+                    g.shuffleCards();
+
+                }
+
+                // set rest of the values.
+                g.setStarted(true);
+            }
+            
+
+            g.setTurn(turn);
+            g.setDirection(direction);
+            g.setLastColour(colour);
+            g.setLastNumber(number);
+
+            
+            return g;
+        }
+        
 	@Override
 	// NOT DISTRIBUTED!
-	public void deleteGame() throws RemoteException {
+	public void deleteGame(int gameID) throws RemoteException {
+            try {
+                removeGame.setInt(1, gameID);
+                removeGame.executeUpdate();
+                
+            } catch (SQLException ex) {
+                Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
+            
+            
 	}
 
         @Override
@@ -690,7 +743,90 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 			}
         }
 
+    @Override
+    public List<Game> getParticipatingGames(String token) throws RemoteException{
+        List<Game> result = new ArrayList<Game>();
+        User u;Game g;
+        try {
+            getUserWithToken.setString(1, token);
 
+            ResultSet rs = getUserWithToken.executeQuery();
+
+            if (rs.next()){
+                u = new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
+                        rs.getString(6), rs.getLong(7), rs.getInt(8));
+                System.out.println("model.Database.getParticipatingGames() user found");
+                        
+                readParticipatingGames.setInt(1, u.getId());
+                readParticipatingGames.setInt(2, u.getId());
+                readParticipatingGames.setInt(3, u.getId());
+                readParticipatingGames.setInt(4, u.getId());
+                ResultSet rsg = readParticipatingGames.executeQuery();
+                
+                while(rsg.next()){
+                    System.out.println("model.Database.getParticipatingGames() game found");
+                    g = new Game(rsg.getInt(1), rsg.getInt(11));
+                    //methode om neuwe game in te stellen 
+                    g = setGame(g, rsg.getInt(2),rsg.getInt(3),rsg.getInt(4),rsg.getInt(5),rsg.getInt(6),rsg.getInt(7),rsg.getInt(8),rsg.getInt(9),rsg.getBoolean(10));
+                    result.add(g);
+                }
+            }	
+                
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println("get all games");
+         return result;               
+    }
+    
+    @Override
+    public List<Game> getPrivateGames() throws RemoteException{
+        System.out.println("get priv games");
+        List<Game> result = new ArrayList<Game>();
+        Game game;
+        try {		
+                
+                ResultSet rs = readPrivateGames.executeQuery();	
+                //eventueel enkel eerste 20 terug geven
+                while (rs.next()){
+                    game = new Game(rs.getInt(1), rs.getInt(11));
+                    //methode om neuwe game in te stellen 
+                    game = setGame(game, rs.getInt(2),rs.getInt(3),rs.getInt(4),rs.getInt(5),rs.getInt(6),rs.getInt(7),rs.getInt(8),rs.getInt(9),rs.getBoolean(10));
+                    if(!game.getStarted() && game.getAmountOfPlayers() < game.getMaxUsers()){
+                        result.add(game); 
+                    }
+                    
+                }  	
+        } catch (SQLException e) {		
+                e.printStackTrace();		
+        }     
+        return result;
+    }
+
+    @Override
+    public synchronized boolean joinGame(int gameID, String token)throws RemoteException{
+        boolean joined = false;
+        Game game;
+        User u;
+        System.out.println("gameID: "+gameID);
+        u = readTokenUser(token);
+        game = readGame(gameID);
+        //game nog niet vol en niet begonnen
+        System.out.println("game gelezen en gevonden: amountofP: "+game.amountOfPlayers + "  "+game.getMaxUsers());
+        if (game.getAmountOfPlayers()<game.getMaxUsers() && !game.getStarted()){
+            //zelf er nog niet in
+                if(!game.getPlayers().contains(u)){
+                    System.out.println("steek speler: "+u+"in game: "+game);
+                    game.addPlayer(u);
+                    deleteGame(gameID);
+                    saveGame(game);
+                    joined = true;
+                }
+        }	
+        //if();
+        return joined;
+    }
 
 
 	

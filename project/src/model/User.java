@@ -46,6 +46,10 @@ public class User implements Serializable{
 		this.token = null;
 		this.timestamp = null;
 	}
+
+    public User() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 	
 	//getters en setters
 	public int getId() {

@@ -6,6 +6,7 @@
 package model;
 
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,12 +20,10 @@ import java.util.TreeSet;
 
 import model.Card.Colour;
 
-public class Game {
-
-	
+public class Game implements Serializable{
 
 	int id;
-	public static final int MAX_USERS = 4;
+	private static int MAX_USERS = 4;
 	public static final int START_CARDS = 4;
 	
 	//users
@@ -41,9 +40,10 @@ public class Game {
 	Boolean started;
         private Boolean finished;
         private boolean changedScores;
-	
+	private boolean privateGame;
+        
 	int amountOfPlayers=0;
-	
+	int maxPlayers;
 	int turn;//speler aan beurt 0 1 2 3
 	int direction=1;//1 klokwijzerszin  -1 tegenklokwijzerszin
 	
@@ -52,10 +52,35 @@ public class Game {
 	Colour preferred;
 
 	public Game(int id) {
-                finished = false;
-                changedScores=false;
-		this.id=id;
-		deck = new LinkedList<Card>();
+            finished = false;
+            changedScores=false;
+            MAX_USERS = 4;
+            this.id=id;
+            prepareDeck();
+            privateGame = false;
+	}
+
+        
+        public Game(int id, int maxUsers){
+            finished = false;
+            changedScores=false;
+            this.id=id;
+            MAX_USERS = maxUsers;
+            prepareDeck();
+            privateGame = true;
+        }
+
+        public boolean isPrivateGame() {
+            return privateGame;
+        }
+
+        public void setPrivateGame(boolean privateGame) {
+            this.privateGame = privateGame;
+        }
+
+        
+        public void prepareDeck(){
+            deck = new LinkedList<Card>();
 		//alle kaarten toevoegen
 		
 		for(int i=0;i<15;i++) {
@@ -87,12 +112,11 @@ public class Game {
 			cards.add(new ArrayList<Card>()) ;
 			
 		}
-		
+                LastCard = new Card(0, 0);
+                current = LastCard.c;
 		started=false;
 		int turn=0;
-
-	}
-
+        }
     	/**		
         * @return the changedScores	
         * */
@@ -106,6 +130,9 @@ public class Game {
                this.changedScores = changedScores;		
        }
 
+       public int getMaxUsers(){
+           return MAX_USERS;
+       }
 	public void shuffleCards() {
 		Collections.shuffle(deck);
 	}
@@ -115,8 +142,8 @@ public class Game {
         }
 	
 	public void addPlayer(User u) {
-		//niet in spel en nog plaats vrij
-		if(!users.contains(u)&&countPlayers()<MAX_USERS) {
+		//niet in spel en nog plaats vrij & User moet bestaan
+		if(!users.contains(u)&&countPlayers()<MAX_USERS && u !=null){
 			
 			Boolean found =false;
 			int i=0;
@@ -224,6 +251,7 @@ public class Game {
 	}
 	
 	public void start() {
+            MAX_USERS = amountOfPlayers;
             if(amountOfPlayers>1){
                 started=true;
                 for(int i=0;i<amountOfPlayers;i++) {
@@ -243,6 +271,11 @@ public class Game {
                 deck.remove(c);
                 
 	    }
+            for(int i=users.size()-1;i>=0;i--){
+                if (users.get(i)== null){
+                    users.remove(i);
+                }
+            }
             
 	}
 	
@@ -500,7 +533,7 @@ public class Game {
         public String toString() {
                 return "Game [users=" + users + ",\n cards=" + cards + ",\n  started=" + started + ",\n  amountOfPlayers="
                                 + amountOfPlayers + ",\n turn=" + turn + ",\n direction=" + direction + ",\n LastCard=" + LastCard
-                                + ",\n current=" + current + ",\n preferred=" + preferred + "]";
+                                + ",\n current=" + current + ",\n preferred=" + preferred+ ",\n max_users=" + MAX_USERS + "]";
         }
 
     

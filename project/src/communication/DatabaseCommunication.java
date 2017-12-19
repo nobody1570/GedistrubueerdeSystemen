@@ -30,16 +30,18 @@ public interface DatabaseCommunication extends Remote {
 	public void updateUser(User u) throws RemoteException;
 
 	public int getHighestID() throws RemoteException;
+        
+        public int getHighestGameID() throws RemoteException;
 
 	public void deleteUser(User u) throws RemoteException;
 
 	public void deleteUser(int i) throws RemoteException;
 
 	public void saveGame(Game g) throws RemoteException;
-
+        
 	public Game readGame(int gameID) throws RemoteException;
 
-	public void deleteGame() throws RemoteException;
+	public void deleteGame(int gameID) throws RemoteException;
         
         public String readCardback(String theme) throws RemoteException;
 
@@ -54,5 +56,12 @@ public interface DatabaseCommunication extends Remote {
         public void addScore(User u, int gameScore)throws RemoteException;
 	
 	public void nonPropagateaddScore(User u, int gameScore) throws RemoteException;
+
+        public List<Game> getParticipatingGames(String token) throws RemoteException;
+    
+        public List<Game> getPrivateGames() throws RemoteException;
+
+        public boolean joinGame(int gameID, String token)throws RemoteException;
+
 
 }

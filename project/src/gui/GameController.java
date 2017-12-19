@@ -76,7 +76,8 @@ public class GameController implements Initializable {
     //game info
     private static int gameID;
     private static String token;
-    private boolean gameFinished;
+    private static boolean gameFinished;
+    private static boolean privateGame;
     
     private ObservableList<Card> hand = FXCollections.observableArrayList();
     private ObservableList<User> players = FXCollections.observableArrayList();
@@ -91,6 +92,7 @@ public class GameController implements Initializable {
     public Image cardBack;
     @FXML public ImageView cardBackView;
     @FXML public Button draw;
+    @FXML public Button start;
     @FXML public Button playCard;
     @FXML public Button returnToLobby;
     @FXML Button load;
@@ -106,6 +108,9 @@ public class GameController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
+        //if(!privateGame){
+            start.setVisible(false);
+        //}
         draw.setVisible(false);
         playCard.setVisible(false);
         //cardBack = new Image("/image/CARDBACK.png");
@@ -120,8 +125,7 @@ public class GameController implements Initializable {
                 season = "Classic";
             }
         }
-        
-        
+        System.out.println("priv ini:"+privateGame);
         gameFinished = false;
         //handView.setItems(hand);
         handView.setItems(hand);
@@ -136,6 +140,8 @@ public class GameController implements Initializable {
                         ImageView imgView = new ImageView(i);
                         setGraphic(imgView);
                         
+                    }else {
+                        setGraphic(null);
                     }
                 }
                 
@@ -155,6 +161,8 @@ public class GameController implements Initializable {
                     if (t != null) {
                         setText(t.getLogin()+ ":");
                         
+                    }else {
+                        setGraphic(null);
                     }
                 }
                 
@@ -162,16 +170,29 @@ public class GameController implements Initializable {
             
             return cell;
         });
-        handsizeView.setItems(handSizes);       
+        handsizeView.setItems(handSizes);    
+        ActionEvent e = new ActionEvent();
+        try {
+            loadGame(e);
+            //handView.getSelectionModel().getSelectionMode(Selectionmode.MULTIPLE);
+            //users toevoegen
+        } catch (IOException ex) {
+            Logger.getLogger(PrivateLobbyController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     } 
     
+    public void setPrivateGame(boolean priv){
+        //privateGame = priv;
+    }
     public void setStage(Stage stage){
         this.stage = stage;
     }
     @FXML
     public void returnToLobby(ActionEvent event) throws IOException{ 
         //pop-up om te vragen of ze zeker zijn.
-    	if(!impl.getFinished(gameID)){
+    	if(!impl.getFinished(gameID, privateGame)){
             Alert alert = new Alert(AlertType.CONFIRMATION, "Leaving in the middle of a game will be counted as a loss.", ButtonType.YES, ButtonType.NO);
             alert.setTitle("Leave to lobby");
             alert.setHeaderText("Are you sure you want to leave to the lobby?");
@@ -195,16 +216,35 @@ public class GameController implements Initializable {
 
             window.show();
         
+        }  
+    }
+     @FXML
+    public void startGame(ActionEvent event) throws IOException{ 
+        if(impl.startGame(gameID, privateGame)){
+            ActionEvent e = new ActionEvent();
+            try {
+                loadGame(e);
+                //handView.getSelectionModel().getSelectionMode(Selectionmode.MULTIPLE);
+                //users toevoegen
+            } catch (IOException ex) {
+                Logger.getLogger(PrivateLobbyController.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }else{
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("your alone, waiting for others players, try later again!");
+
+            alert.showAndWait();
         }
-    	
-        
-        
-        
     }
     
     
     @FXML
     public void loadGame(ActionEvent event)throws IOException, RemoteException, InterruptedException{
+        
         usernameLabel.setText(username);
         String cardbackString = impl.getCardback(season);
         System.out.println(cardbackString);
@@ -212,9 +252,9 @@ public class GameController implements Initializable {
         cardBackView.setImage(cardBack);
                 //BufferedImage capture = impl.getCardback(season);
                 //cardBack = SwingFXUtils.toFXImage(capture, null);
-            
-        if(impl.getStarted(gameID)){
-            
+        System.out.println("privgame: "+privateGame);
+        if(impl.getStarted(gameID,privateGame)){
+            //start.setVisible(false);
             load.setVisible(false);
             draw.setVisible(false);
             playCard.setVisible(false);
@@ -231,8 +271,8 @@ public class GameController implements Initializable {
                         Card c, previous=null;boolean finished=false;
                         while (!finished) {
                             System.out.println("runloop");
-                            if(impl.waitForNewCardPlayed(gameID)){
-                                c = impl.getLatestPlayedCard(gameID);
+                            if(impl.waitForNewCardPlayed(gameID,privateGame)){
+                                c = impl.getLatestPlayedCard(gameID,privateGame);
 
                                 if(!c.equals(previous)){
                                     previous = c;                              
@@ -267,7 +307,7 @@ public class GameController implements Initializable {
 
             alert.showAndWait();
         }
-        userView.getItems().setAll(impl.getSpelersList(gameID));
+        userView.getItems().setAll(impl.getSpelersList(gameID,privateGame));
         
 
         
@@ -278,11 +318,11 @@ public class GameController implements Initializable {
         System.out.println("in update");
         List<Card> hands;
         try {
-            hands = impl.getHand(gameID, token);
+            hands = impl.getHand(gameID, token,privateGame);
             handView.getItems().clear();
             handView.getItems().setAll(hands);
             //playerListView.getItems().setAll(impl.getSpelersList(gameID));
-            Card c = impl.getLatestPlayedCard(gameID);
+            Card c = impl.getLatestPlayedCard(gameID,privateGame);
             
             //ontdubbelen warning
             /*
@@ -299,7 +339,7 @@ public class GameController implements Initializable {
             lastCardI.setImage(new Image("image/"+c.getColour()+"_"+c.getNumber()+".png"));
             //lastCard.setText(c.toString());
             //handsizes wijzigen
-            List<Integer> handS = impl.getSpelersHandSize(gameID);
+            List<Integer> handS = impl.getSpelersHandSize(gameID,privateGame);
             handsizeView.getItems().setAll(handS);
             System.out.println("einde update"); 
         } catch (RemoteException ex) {
@@ -314,14 +354,14 @@ public class GameController implements Initializable {
             System.out.println("in update");
             List<Card> hands;
                 
-            hands = impl.getHand(gameID, token);
+            hands = impl.getHand(gameID, token,privateGame);
             handView.getItems().clear();
             handView.getItems().setAll(hands);
             //playerListView.getItems().setAll(impl.getSpelersList(gameID));
-            Card c = impl.getLatestPlayedCard(gameID);
+            Card c = impl.getLatestPlayedCard(gameID,privateGame);
             //indien colour last played = any
             if(c.getColour()==Colour.ANY){
-                Colour current = impl.getCurrentColour(gameID);
+                Colour current = impl.getCurrentColour(gameID,privateGame);
                 Alert alert = new Alert(AlertType.WARNING);
                 alert.setTitle("Warning Dialog");
                 alert.setHeaderText("New Colour is: "+ current);
@@ -332,7 +372,7 @@ public class GameController implements Initializable {
             lastCardI.setImage(new Image("image/"+c.getColour()+"_"+c.getNumber()+".png"));
             lastCard.setText(c.toString());
             //handsizes wijzigen
-            List<Integer> handS = impl.getSpelersHandSize(gameID);
+            List<Integer> handS = impl.getSpelersHandSize(gameID,privateGame);
             handsizeView.getItems().setAll(handS);
             System.out.println("einde update"); 
 
@@ -349,7 +389,7 @@ public class GameController implements Initializable {
             .getSelectedItem();
         
         if (c != null) {
-            boolean playable =impl.playCardAllowed(gameID,c);
+            boolean playable =impl.playCardAllowed(gameID,c,privateGame);
 
             if(playable) {
                 //TODO kaart controleren clientside
@@ -370,7 +410,7 @@ public class GameController implements Initializable {
                     result.ifPresent(
                         letter -> {
                             try {
-                                impl.setPrefered(gameID, token, letter);
+                                impl.setPrefered(gameID, token, letter,privateGame);
                             } catch (RemoteException ex) {
                                 Logger.getLogger(GameController.class.getName()).log(Level.SEVERE, null, ex);
                             }
@@ -384,8 +424,8 @@ public class GameController implements Initializable {
                 //controleer if playable
                 hand.remove(c);
                 
-                impl.playCard(token, gameID, c);
-                 List<Card> hands = impl.getHand(gameID, token);
+                impl.playCard(token, gameID, c,privateGame);
+                 List<Card> hands = impl.getHand(gameID, token,privateGame);
                 handView.getItems().clear();
                 handView.getItems().setAll(hands);
             }else{
@@ -406,7 +446,7 @@ public class GameController implements Initializable {
     
     @FXML void drawCard()throws RemoteException{
         System.out.println("drawCard");
-        impl.drawCard(gameID, token);
+        impl.drawCard(gameID, token,privateGame);
         
         draw.setDisable(true);
         playCard.setDisable(true);
@@ -430,8 +470,8 @@ public class GameController implements Initializable {
         task = new Task<Void>() {
             @Override public synchronized Void call() throws RemoteException, InterruptedException, IOException {
                 
-                if (impl.getStarted(gameID)){
-                    if(impl.myTurn(gameID,token)){
+                if (impl.getStarted(gameID,privateGame)){
+                    if(impl.myTurn(gameID,token,privateGame)){
                         //myturn to play
                         Platform.runLater(() -> {
                             try {
@@ -473,7 +513,7 @@ public class GameController implements Initializable {
     public void endGame() throws RemoteException{
         //game is gedaan
         System.out.println("in endgame");
-            Map<User,Integer> score = impl.getScore(gameID);
+            Map<User,Integer> score = impl.getScore(gameID,privateGame);
             String result = new String();
             for (Map.Entry<User,Integer> e:score.entrySet()){
                 result = result.concat(e.getKey().getLogin() + ": "+ e.getValue()+'\n');
@@ -492,12 +532,14 @@ public class GameController implements Initializable {
             
     }
     
-    public void redirectGame(int gameID, String token, Communication impl, Registry myRegistry, String username) {
+    public void redirectGame(int gameID, String token, Communication impl, Registry myRegistry, String username, boolean priv) {
         this.gameID = gameID;
         this.impl = impl;
         this.myRegistry = myRegistry;    
         this.token = token;
         this.username = username;
+        this.privateGame = priv;
+        System.out.println("priv: "+this.privateGame);
     }
     
     
