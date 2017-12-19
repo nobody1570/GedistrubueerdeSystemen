@@ -35,8 +35,8 @@ Bovendien kan een speler meekijken naar spelletjes die tussen andere spelers aan
 -getSpelersList!!!!!!!
 veilig maken --> password, salt en timestamp en token verwijderen voor iets doorgestuurd wordt!!!!!!
 
--waitForNewCardPlayed
-??? raar gedrag wordt dit gebruikt?
+-logout
+--> met token implementeren
 
 MOGEN:
 
