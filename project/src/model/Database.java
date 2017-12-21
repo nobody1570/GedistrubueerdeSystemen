@@ -572,6 +572,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
 			createGame.setInt(9, g.getLastNumber());
                         createGame.setBoolean(10, g.getStarted());
                         createGame.setInt(11,g.getMaxUsers());
+                    
 			createGame.executeUpdate();
 
                         System.out.println("adding cards");
@@ -688,6 +689,7 @@ public class Database extends UnicastRemoteObject implements DatabaseCommunicati
             g.setDirection(direction);
             g.setLastColour(colour);
             g.setLastNumber(number);
+            g.setChangedScores(false);
 
             
             return g;
